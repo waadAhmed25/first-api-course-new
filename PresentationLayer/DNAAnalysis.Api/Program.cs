@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using DNAAnalysis.Persistence;
-
+using DNAAnalysis.Persistence.Data.DBContexts;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -56,6 +56,11 @@ builder.Services.AddDbContext<StoreIdentityDbContext>(options =>
         builder.Configuration.GetConnectionString("IdentityConnection"));
 });
 
+builder.Services.AddDbContext<DNAAnalysisDbContext>(options =>
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("IdentityConnection"));
+});
 // ================= Services =================
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddKeyedScoped<IDataInitializer, IdentityDataInitializer>("Identity");
