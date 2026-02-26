@@ -1,5 +1,4 @@
 using DNAAnalysis.Shared.GeneticRequestDtos;
-using DNAAnalysis.Domain.Entities.GeneticModule;
 using DNAAnalysis.Shared.Enums;
 
 public interface IGeneticRequestService
@@ -12,6 +11,8 @@ public interface IGeneticRequestService
 
     Task<GeneticRequestDto?> GetByIdAsync(int id);
 
-    
+    // ✅ الجديدة
+    Task<GeneticRequestDto?> GetByIdForUserAsync(int id, string userId, bool isAdmin);
+
     Task UpdateStatusAsync(int id, RequestStatus status);
 }

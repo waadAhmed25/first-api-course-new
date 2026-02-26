@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using DNAAnalysis.Domain.Entities.IdentityModule;
 using DNAAnalysis.Domain.Contracts;
-using System.Linq;
 
 namespace DNAAnalysis.Persistence.IdentityData.DataSeed;
-
-
 
 public class IdentityDataInitializer : IDataInitializer
 {
@@ -24,37 +21,37 @@ public class IdentityDataInitializer : IDataInitializer
     {
         try
         {
-            // 1️⃣ Seed Roles
-            if (!_roleManager.Roles.Any())
+            // 1️⃣ Seed Roles (Safe Way)
+            if (!await _roleManager.RoleExistsAsync("Admin"))
             {
                 await _roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+
+            if (!await _roleManager.RoleExistsAsync("SuperAdmin"))
+            {
                 await _roleManager.CreateAsync(new IdentityRole("SuperAdmin"));
             }
 
-            // 2️⃣ Seed Users
-            if (!_userManager.Users.Any())
+            // 2️⃣ Seed Real Admin
+            var existingAdmin = await _userManager.FindByEmailAsync("waadodeana@outlook.com");
+
+            if (existingAdmin == null)
             {
-                var user01 = new ApplicationUser()
+                var admin = new ApplicationUser()
                 {
-                    DisplayName = "Mariam Ali",
-                    UserName = "mariamali",
-                    Email = "mariamali@gmail.com",
-                    PhoneNumber = "01000000001"
+                    DisplayName = "waad Ahmed",
+                    UserName = "waadAhmed27",
+                    Email = "waadodeana@outlook.com", 
+                    PhoneNumber = "01000000000",
+                    EmailConfirmed = true
                 };
 
-                var user02 = new ApplicationUser()
+                var result = await _userManager.CreateAsync(admin, "Shahdwaad26#");
+
+                if (result.Succeeded)
                 {
-                    DisplayName = "Ahmed Ali",
-                    UserName = "ahmedali",
-                    Email = "ahmedali@gmail.com",
-                    PhoneNumber = "01000000002"
-                };
-
-                await _userManager.CreateAsync(user01, "P@ssw0rd");
-                await _userManager.CreateAsync(user02, "P@ssw0rd");
-
-                await _userManager.AddToRoleAsync(user01, "SuperAdmin");
-                await _userManager.AddToRoleAsync(user02, "Admin");
+                    await _userManager.AddToRoleAsync(admin, "Admin");
+                }
             }
         }
         catch (Exception ex)
@@ -63,4 +60,3 @@ public class IdentityDataInitializer : IDataInitializer
         }
     }
 }
-

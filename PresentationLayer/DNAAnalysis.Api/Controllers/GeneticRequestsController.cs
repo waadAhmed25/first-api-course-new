@@ -48,16 +48,21 @@ public class GeneticRequestsController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
-    {
-        var request = await _service.GetByIdAsync(id);
+[HttpGet("{id}")]
+public async Task<IActionResult> GetById(int id)
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (request is null)
-            return NotFound();
+    if (userId is null)
+        return Unauthorized();
 
-        return Ok(request);
-    }
+    var request = await _service.GetByIdForUserAsync(id, userId, User.IsInRole("Admin"));
+
+    if (request is null) 
+        return NotFound();
+
+    return Ok(request);
+}
 
     // ================= ADMIN =================
 

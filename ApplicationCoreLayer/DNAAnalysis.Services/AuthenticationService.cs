@@ -204,8 +204,11 @@ public class AuthenticationService : IAuthenticationService
     // ================= JWT =================
     private async Task<string> CreateTokenAsync(ApplicationUser user)
     {
-        var Claims = new List<Claim>()
+        var claims = new List<Claim>()
         {
+            // 👇 ده السطر المهم اللي كان ناقص
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+
             new Claim(JwtRegisteredClaimNames.Email, user.Email!),
             new Claim(JwtRegisteredClaimNames.Name, user.UserName!)
         };
@@ -213,17 +216,17 @@ public class AuthenticationService : IAuthenticationService
         var roles = await _userManager.GetRolesAsync(user);
 
         foreach (var role in roles)
-            Claims.Add(new Claim(ClaimTypes.Role, role));
+            claims.Add(new Claim(ClaimTypes.Role, role));
 
-        var SecretKey = _configuration["JwtOptions:SecretKey"]!;
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SecretKey));
+        var secretKey = _configuration["JwtOptions:SecretKey"]!;
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer: _configuration["JwtOptions:Issuer"],
             audience: _configuration["JwtOptions:Audience"],
             expires: DateTime.UtcNow.AddHours(1),
-            claims: Claims,
+            claims: claims,
             signingCredentials: signingCredentials
         );
 

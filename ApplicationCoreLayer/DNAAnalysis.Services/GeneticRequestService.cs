@@ -5,8 +5,6 @@ using DNAAnalysis.Services.Abstraction;
 using DNAAnalysis.Shared.GeneticRequestDtos;
 using DNAAnalysis.Shared.Enums;
 
-
-
 namespace DNAAnalysis.Services;
 
 public class GeneticRequestService : IGeneticRequestService
@@ -73,21 +71,37 @@ public class GeneticRequestService : IGeneticRequestService
         return _mapper.Map<GeneticRequestDto?>(request);
     }
 
-   
+    // ✅ دي اللي كانت ناقصة
+    public async Task<GeneticRequestDto?> GetByIdForUserAsync(int id, string userId, bool isAdmin)
+    {
+        var request = await _unitOfWork
+            .GetRepository<GeneticRequest, int>()
+            .GetByIdAsync(id);
+
+        if (request is null)
+            return null;
+
+        // لو مش Admin ومش صاحب الطلب
+        if (!isAdmin && request.UserId != userId)
+            return null;
+
+        return _mapper.Map<GeneticRequestDto>(request);
+    }
+
     public async Task UpdateStatusAsync(int id, RequestStatus status)
-{
-    var repo = _unitOfWork.GetRepository<GeneticRequest, int>();
+    {
+        var repo = _unitOfWork.GetRepository<GeneticRequest, int>();
 
-    var request = await repo.GetByIdAsync(id);
+        var request = await repo.GetByIdAsync(id);
 
-    if (request is null)
-        throw new Exception("Request not found");
+        if (request is null)
+            throw new Exception("Request not found");
 
-    request.Status = status;
-    request.UpdatedAt = DateTime.UtcNow;
+        request.Status = status;
+        request.UpdatedAt = DateTime.UtcNow;
 
-    repo.Update(request);
+        repo.Update(request);
 
-    await _unitOfWork.SaveChangeAsync();
-}
+        await _unitOfWork.SaveChangeAsync();
+    }
 }

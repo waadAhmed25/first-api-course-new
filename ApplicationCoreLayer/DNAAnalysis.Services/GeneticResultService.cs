@@ -40,7 +40,7 @@ namespace DNAAnalysis.Services
             await resultRepo.AddAsync(result);
 
             // 👇 نغير الحالة حسب الـ enum عندك
-            request.Status = RequestStatus.Approved;
+            request.Status = RequestStatus.Completed;
 
             requestRepo.Update(request);
 

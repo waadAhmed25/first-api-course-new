@@ -92,6 +92,7 @@ builder.Services.AddScoped<IGeneticResultService, GeneticResultService>();
 
 // ===== AutoMapper =====
 
+
 builder.Services.AddAutoMapper(typeof(GeneticRequestService));
 
 // ================= JWT Authentication =================
@@ -119,6 +120,7 @@ builder.Services.AddAuthentication(options =>
 var app = builder.Build();
 
 // ================= Data Seed =================
+
 await app.MigrateIdentityDatabaseAsync();
 await app.SeedIdentityDatabaseAsync();
 

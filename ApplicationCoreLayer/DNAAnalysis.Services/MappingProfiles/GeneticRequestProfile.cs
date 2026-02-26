@@ -5,6 +5,7 @@ using DNAAnalysis.Domain.Entities.GeneticModule;
 namespace DNAAnalysis.Services.MappingProfiles;
 
 
+
 public class GeneticRequestProfile : Profile
 {
     public GeneticRequestProfile()
