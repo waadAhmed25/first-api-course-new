@@ -14,6 +14,7 @@ using DNAAnalysis.Persistence;
 using DNAAnalysis.Persistence.Data.DBContexts;
 using DNAAnalysis.Persistence.Repository;
 using AutoMapper;
+using DNAAnalysis.Services.MappingProfiles;
 
 
 
@@ -92,9 +93,10 @@ builder.Services.AddScoped<IGeneticRequestService, GeneticRequestService>();
 builder.Services.AddScoped<IGeneticResultService, GeneticResultService>();
 
 // ===== AutoMapper =====
+builder.Services.AddAutoMapper(typeof(DrugProfile).Assembly);
 
-
-builder.Services.AddAutoMapper(typeof(GeneticRequestService));
+// ===== Drug Module Service =====
+builder.Services.AddScoped<IDrugService, DrugService>();
 
 // ================= JWT Authentication =================
 builder.Services.AddAuthentication(options =>
