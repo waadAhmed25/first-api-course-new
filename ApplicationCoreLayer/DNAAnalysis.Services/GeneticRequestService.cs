@@ -11,13 +11,16 @@ public class GeneticRequestService : IGeneticRequestService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IGeneticAnalysisClient _aiClient;
 
     public GeneticRequestService(
         IUnitOfWork unitOfWork,
-        IMapper mapper)
+        IMapper mapper,
+        IGeneticAnalysisClient aiClient)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _aiClient = aiClient;
     }
 
     public async Task<int> CreateRequestAsync(string userId, CreateGeneticRequestDto dto)
@@ -29,12 +32,40 @@ public class GeneticRequestService : IGeneticRequestService
             MotherFilePath = dto.MotherFilePath,
             ChildFilePath = dto.ChildFilePath,
             CreatedAt = DateTime.UtcNow,
-            Status = RequestStatus.Pending
+            Status = RequestStatus.Processing
         };
 
-        await _unitOfWork
-            .GetRepository<GeneticRequest, int>()
-            .AddAsync(request);
+        var requestRepo = _unitOfWork.GetRepository<GeneticRequest, int>();
+        var resultRepo = _unitOfWork.GetRepository<GeneticResult, int>();
+
+        await requestRepo.AddAsync(request);
+        await _unitOfWork.SaveChangeAsync();
+
+        try
+        {
+            var result = await _aiClient.AnalyzeAsync(
+                request.FatherFilePath,
+                request.MotherFilePath,
+                request.ChildFilePath);
+
+            var geneticResult = new GeneticResult
+            {
+                GeneticRequestId = request.Id,
+                FatherStatus = result.FatherStatus,
+                MotherStatus = result.MotherStatus,
+                ChildStatus = result.ChildStatus,
+                MessageToPatient = result.MessageToPatient,
+                Advice = result.Advice
+            };
+
+            await resultRepo.AddAsync(geneticResult);
+
+            request.Status = RequestStatus.Completed;
+        }
+        catch
+        {
+            request.Status = RequestStatus.Failed;
+        }
 
         await _unitOfWork.SaveChangeAsync();
 
@@ -71,7 +102,6 @@ public class GeneticRequestService : IGeneticRequestService
         return _mapper.Map<GeneticRequestDto?>(request);
     }
 
-    // ✅ دي اللي كانت ناقصة
     public async Task<GeneticRequestDto?> GetByIdForUserAsync(int id, string userId, bool isAdmin)
     {
         var request = await _unitOfWork
@@ -81,7 +111,6 @@ public class GeneticRequestService : IGeneticRequestService
         if (request is null)
             return null;
 
-        // لو مش Admin ومش صاحب الطلب
         if (!isAdmin && request.UserId != userId)
             return null;
 

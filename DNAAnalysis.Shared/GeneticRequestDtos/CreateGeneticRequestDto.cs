@@ -6,3 +6,4 @@ public class CreateGeneticRequestDto
     public string MotherFilePath { get; set; } = default!;
     public string? ChildFilePath { get; set; }
 }
+

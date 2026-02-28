@@ -81,6 +81,7 @@ builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
 
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IGeneticAnalysisClient, FakeGeneticAnalysisClient>();
 
 // ===== Generic Repository + Unit Of Work =====
 builder.Services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));

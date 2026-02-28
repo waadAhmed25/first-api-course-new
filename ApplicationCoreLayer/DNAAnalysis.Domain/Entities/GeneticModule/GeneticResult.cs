@@ -2,6 +2,7 @@ using DNAAnalysis.Domain.Entities;
 
 namespace DNAAnalysis.Domain.Entities.GeneticModule
 {
+
     public class GeneticResult : BaseEntity<int>
     {
         public string FatherStatus { get; set; } = default!;
@@ -18,5 +19,6 @@ namespace DNAAnalysis.Domain.Entities.GeneticModule
         public int GeneticRequestId { get; set; }
 
         public GeneticRequest GeneticRequest { get; set; }  = default!;
+        public string? Probabilities { get; set; }
     }
 }
