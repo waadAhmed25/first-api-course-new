@@ -18,8 +18,9 @@ public class DrugController : ControllerBase
         _drugService = drugService;
     }
 
-    // ================= GET ALL (Admin / Testing) =================
+    // ================= ADMIN ONLY =================
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<DrugInteractionDto>>> GetAll()
     {
         var result = await _drugService.GetAllAsync();
@@ -30,7 +31,10 @@ public class DrugController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<DrugInteractionDto>> GetById(int id)
     {
-        var result = await _drugService.GetByIdAsync(id);
+        var userId = GetUserId();
+        var isAdmin = User.IsInRole("Admin");
+
+        var result = await _drugService.GetByIdAsync(id, userId, isAdmin);
 
         if (result is null)
             return NotFound();
@@ -38,26 +42,12 @@ public class DrugController : ControllerBase
         return Ok(result);
     }
 
-    // ================= ADD NEW INTERACTION =================
-    [HttpPost]
-    public async Task<ActionResult> Add(DrugInteractionDto dto)
-    {
-        // نجيب اليوزر الحالي من التوكن
-        dto.UserId = GetUserId();
-
-        await _drugService.AddAsync(dto);
-
-        return Ok("Drug Interaction Added Successfully");
-    }
-
-    // ================= GET USER HISTORY =================
+    // ================= USER HISTORY =================
     [HttpGet("my-history")]
     public async Task<ActionResult<IEnumerable<DrugInteractionDto>>> GetMyHistory()
     {
         var userId = GetUserId();
-
         var result = await _drugService.GetUserDrugInteractionsAsync(userId);
-
         return Ok(result);
     }
 
@@ -66,8 +56,9 @@ public class DrugController : ControllerBase
     public async Task<ActionResult> Delete(int id)
     {
         var userId = GetUserId();
+        var isAdmin = User.IsInRole("Admin");
 
-        var deleted = await _drugService.DeleteInteractionAsync(id, userId);
+        var deleted = await _drugService.DeleteInteractionAsync(id, userId, isAdmin);
 
         if (!deleted)
             return NotFound();
@@ -75,20 +66,18 @@ public class DrugController : ControllerBase
         return Ok("Deleted Successfully");
     }
 
-    // ================= HELPER =================
+    // ================= CHECK INTERACTION =================
+    [HttpPost("check-interaction")]
+    public async Task<ActionResult<DrugInteractionDto>> CheckInteraction(
+        CheckDrugInteractionRequest request)
+    {
+        var userId = GetUserId();
+        var result = await _drugService.CheckInteractionAsync(request, userId);
+        return Ok(result);
+    }
+
     private string GetUserId()
     {
         return User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
     }
-
-    [HttpPost("check-interaction")]
-public async Task<ActionResult<DrugInteractionDto>> CheckInteraction(
-    CheckDrugInteractionRequest request)
-{
-    var userId = GetUserId();
-
-    var result = await _drugService.CheckInteractionAsync(request, userId);
-
-    return Ok(result);
-}
 }
