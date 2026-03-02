@@ -15,11 +15,19 @@ using DNAAnalysis.Persistence.Data.DBContexts;
 using DNAAnalysis.Persistence.Repository;
 using AutoMapper;
 using DNAAnalysis.Services.MappingProfiles;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Serilog;
 
-
-
+// ================= SERILOG CONFIG =================
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ✅ Activate Serilog
+builder.Host.UseSerilog();
 
 // ================= Swagger =================
 builder.Services.AddEndpointsApiExplorer();
@@ -84,6 +92,10 @@ builder.Services.Configure<EmailSettings>(
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IGeneticAnalysisClient, FakeGeneticAnalysisClient>();
 
+// ================= FluentValidation =================
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
 // ===== Generic Repository + Unit Of Work =====
 builder.Services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -124,11 +136,12 @@ builder.Services.AddAuthentication(options =>
 var app = builder.Build();
 
 // ================= Data Seed =================
-
 await app.MigrateIdentityDatabaseAsync();
 await app.SeedIdentityDatabaseAsync();
 
 // ================= Middleware =================
+app.UseMiddleware<DNAAnalysis.API.Middleware.ExceptionMiddleware>();
+
 app.UseSwagger();
 app.UseSwaggerUI();
 

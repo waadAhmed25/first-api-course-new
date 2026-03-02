@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using DNAAnalysis.Services.Abstraction;
 using DNAAnalysis.Shared.DrugDtos;
+using DNAAnalysis.API.Responses;
 
 namespace DNAAnalysis.Api.Controllers;
 
@@ -21,15 +22,15 @@ public class DrugController : ControllerBase
     // ================= ADMIN ONLY =================
     [HttpGet]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<IEnumerable<DrugInteractionDto>>> GetAll()
+    public async Task<ActionResult<ApiResponse<IEnumerable<DrugInteractionDto>>>> GetAll()
     {
         var result = await _drugService.GetAllAsync();
-        return Ok(result);
+        return Ok(new ApiResponse<IEnumerable<DrugInteractionDto>>(result, "All interactions retrieved successfully"));
     }
 
     // ================= GET BY ID =================
     [HttpGet("{id}")]
-    public async Task<ActionResult<DrugInteractionDto>> GetById(int id)
+    public async Task<ActionResult<ApiResponse<DrugInteractionDto>>> GetById(int id)
     {
         var userId = GetUserId();
         var isAdmin = User.IsInRole("Admin");
@@ -37,23 +38,23 @@ public class DrugController : ControllerBase
         var result = await _drugService.GetByIdAsync(id, userId, isAdmin);
 
         if (result is null)
-            return NotFound();
+            return NotFound(new ApiResponse<string>(new List<string> { "Interaction not found" }, "Not Found"));
 
-        return Ok(result);
+        return Ok(new ApiResponse<DrugInteractionDto>(result, "Interaction retrieved successfully"));
     }
 
     // ================= USER HISTORY =================
     [HttpGet("my-history")]
-    public async Task<ActionResult<IEnumerable<DrugInteractionDto>>> GetMyHistory()
+    public async Task<ActionResult<ApiResponse<IEnumerable<DrugInteractionDto>>>> GetMyHistory()
     {
         var userId = GetUserId();
         var result = await _drugService.GetUserDrugInteractionsAsync(userId);
-        return Ok(result);
+        return Ok(new ApiResponse<IEnumerable<DrugInteractionDto>>(result, "User history retrieved successfully"));
     }
 
     // ================= DELETE =================
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<ActionResult<ApiResponse<string>>> Delete(int id)
     {
         var userId = GetUserId();
         var isAdmin = User.IsInRole("Admin");
@@ -61,19 +62,19 @@ public class DrugController : ControllerBase
         var deleted = await _drugService.DeleteInteractionAsync(id, userId, isAdmin);
 
         if (!deleted)
-            return NotFound();
+            return NotFound(new ApiResponse<string>(new List<string> { "Interaction not found" }, "Not Found"));
 
-        return Ok("Deleted Successfully");
+        return Ok(new ApiResponse<string>("Deleted Successfully", "Delete completed"));
     }
 
     // ================= CHECK INTERACTION =================
     [HttpPost("check-interaction")]
-    public async Task<ActionResult<DrugInteractionDto>> CheckInteraction(
+    public async Task<ActionResult<ApiResponse<DrugInteractionDto>>> CheckInteraction(
         CheckDrugInteractionRequest request)
     {
         var userId = GetUserId();
         var result = await _drugService.CheckInteractionAsync(request, userId);
-        return Ok(result);
+        return Ok(new ApiResponse<DrugInteractionDto>(result, "Interaction checked successfully"));
     }
 
     private string GetUserId()
