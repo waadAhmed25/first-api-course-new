@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using DNAAnalysis.Domain.Entities.DrugModule;
 using DNAAnalysis.Domain.Entities.NutritionModule;
+using DNAAnalysis.Domain.Entities.AlarmModule;
 
 namespace DNAAnalysis.Persistence.Data.DBContexts
 {
@@ -19,7 +20,10 @@ namespace DNAAnalysis.Persistence.Data.DBContexts
 
         // ✅ Drug Module
         public DbSet<DrugInteraction> DrugInteractions { get; set; }
-
+       
+       // ✅ Alarm Module
+        public DbSet<Reminder> Reminders { get; set; }
+        
         // ✅ Nutrition Module
         public DbSet<NutritionProfile> NutritionProfiles { get; set; }
         public DbSet<NutritionPlan> NutritionPlans { get; set; }
@@ -32,5 +36,6 @@ namespace DNAAnalysis.Persistence.Data.DBContexts
 
             base.OnModelCreating(modelBuilder);
         }
+
     }
 }

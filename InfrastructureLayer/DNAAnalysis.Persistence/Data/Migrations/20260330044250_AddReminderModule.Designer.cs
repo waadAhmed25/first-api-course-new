@@ -4,6 +4,7 @@ using DNAAnalysis.Persistence.Data.DBContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DNAAnalysis.Persistence.Data.Migrations
 {
     [DbContext(typeof(DNAAnalysisDbContext))]
-    partial class DNAAnalysisDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260330044250_AddReminderModule")]
+    partial class AddReminderModule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
