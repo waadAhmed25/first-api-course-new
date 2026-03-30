@@ -19,5 +19,5 @@ public class Reminder : BaseEntity<int>
 
     public bool IsCompleted { get; set; } = false;
 
-    public bool IsDeleted { get; set; }
+    
 }

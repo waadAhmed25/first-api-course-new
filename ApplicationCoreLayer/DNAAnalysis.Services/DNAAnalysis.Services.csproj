@@ -3,7 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DNAAnalysis.Services.Abstraction\DNAAnalysis.Services.Abstraction.csproj" />
     <ProjectReference Include="..\DNAAnalysis.Domain\DNAAnalysis.Domain.csproj" />
-    <ProjectReference Include="..\..\DNAAnalysis.Shared\DNAAnalysis.Shared.csproj" />   <!-- 👈 ضيفي ده -->
+    <ProjectReference Include="..\..\DNAAnalysis.Shared\DNAAnalysis.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,6 +16,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- إخفاء Warning بتاع AutoMapper -->
+    <NoWarn>NU1903</NoWarn>
   </PropertyGroup>
 
 </Project>
