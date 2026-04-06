@@ -21,6 +21,25 @@ namespace DNAAnalysis.API.Middleware
             {
                 await _next(context);
             }
+
+            // ✅ الحالة اللي إحنا محتاجينها
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, ex.Message);
+
+                context.Response.ContentType = "application/json";
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+
+                var response = new ApiResponse<string>(
+                    new List<string> { ex.Message },
+                    "Bad Request"
+                );
+
+                var json = JsonSerializer.Serialize(response);
+                await context.Response.WriteAsync(json);
+            }
+
+            // ❌ أي حاجة تانية (Server Error)
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);

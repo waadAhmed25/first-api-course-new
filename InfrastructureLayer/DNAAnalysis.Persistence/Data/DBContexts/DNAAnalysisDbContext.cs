@@ -37,5 +37,7 @@ namespace DNAAnalysis.Persistence.Data.DBContexts
             base.OnModelCreating(modelBuilder);
         }
 
+        public DbSet<UserMealSelection> UserMealSelections { get; set; }
+
     }
 }

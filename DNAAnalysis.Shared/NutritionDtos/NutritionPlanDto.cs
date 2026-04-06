@@ -10,5 +10,8 @@ public class NutritionPlanDto
 
     public double FatPercentage { get; set; }
 
+    public int EatenCalories { get; set; }     // ✅ جديد
+    public int RemainingCalories { get; set; } // ✅ جديد
+
     public IEnumerable<MealSuggestionDto> Meals { get; set; } = new List<MealSuggestionDto>();
 }

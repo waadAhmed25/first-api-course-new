@@ -78,4 +78,32 @@ public class NutritionController : ControllerBase
             "Nutrition plan retrieved successfully"
         ));
     }
+
+   [HttpPost("select-meal/{mealId}")]
+public async Task<IActionResult> SelectMeal(int mealId)
+{
+    var userId = GetUserId();
+
+    await _nutritionService.SelectMealAsync(userId, mealId);
+
+    return Ok(new ApiResponse<string>(
+        "Meal selected",
+        "Success"
+    ));
+}
+
+[HttpDelete("select-meal/{mealId}")]
+public async Task<IActionResult> UnselectMeal(int mealId)
+{
+    var userId = GetUserId();
+
+    await _nutritionService.UnselectMealAsync(userId, mealId);
+
+    return Ok(new ApiResponse<string>(
+        "Meal unselected",
+        "Success"
+    ));
+}
+
+
 }
