@@ -79,31 +79,31 @@ public class NutritionController : ControllerBase
         ));
     }
 
-   [HttpPost("select-meal/{mealId}")]
-public async Task<IActionResult> SelectMeal(int mealId)
-{
-    var userId = GetUserId();
+    // ✅ FIXED
+    [HttpPost("select-meal/{mealId}")]
+    public async Task<IActionResult> SelectMeal([FromRoute] int mealId)
+    {
+        var userId = GetUserId();
 
-    await _nutritionService.SelectMealAsync(userId, mealId);
+        await _nutritionService.SelectMealAsync(userId, mealId);
 
-    return Ok(new ApiResponse<string>(
-        "Meal selected",
-        "Success"
-    ));
-}
+        return Ok(new ApiResponse<string>(
+            "Meal selected",
+            "Success"
+        ));
+    }
 
-[HttpDelete("select-meal/{mealId}")]
-public async Task<IActionResult> UnselectMeal(int mealId)
-{
-    var userId = GetUserId();
+    // ✅ FIXED
+    [HttpDelete("select-meal/{mealId}")]
+    public async Task<IActionResult> UnselectMeal([FromRoute] int mealId)
+    {
+        var userId = GetUserId();
 
-    await _nutritionService.UnselectMealAsync(userId, mealId);
+        await _nutritionService.UnselectMealAsync(userId, mealId);
 
-    return Ok(new ApiResponse<string>(
-        "Meal unselected",
-        "Success"
-    ));
-}
-
-
+        return Ok(new ApiResponse<string>(
+            "Meal unselected",
+            "Success"
+        ));
+    }
 }

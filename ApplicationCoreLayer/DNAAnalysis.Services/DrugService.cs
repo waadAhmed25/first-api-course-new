@@ -79,13 +79,9 @@ public class DrugService : IDrugService
         CheckDrugInteractionRequest request,
         string userId)
     {
-        if (string.IsNullOrWhiteSpace(request.Drug1) ||
-            string.IsNullOrWhiteSpace(request.Drug2))
-            throw new ArgumentException("Drug names cannot be empty");
-
-        if (request.Drug1.Trim().ToLower() ==
-            request.Drug2.Trim().ToLower())
-            throw new ArgumentException("Cannot compare the same drug");
+        // ✅ Normalize فقط
+        request.Drug1 = request.Drug1.Trim();
+        request.Drug2 = request.Drug2.Trim();
 
         var aiResult = await _drugClient.CheckInteractionAsync(request);
 
@@ -98,5 +94,42 @@ public class DrugService : IDrugService
         await _unitOfWork.SaveChangeAsync();
 
         return aiResult;
+    }
+
+    // ================= CHECK MULTIPLE =================
+    public async Task<IEnumerable<DrugInteractionDto>> CheckMultipleInteractionsAsync(
+        CheckMultipleDrugsRequest request,
+        string userId)
+    {
+        // ✅ Prevent null (بدون ما نكرر validation)
+        var drugs = request.Drugs ?? new List<string>();
+
+        // ✅ Normalize + Clean
+        drugs = drugs
+            .Select(d => d.Trim())
+            .Where(d => !string.IsNullOrWhiteSpace(d))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var results = new List<DrugInteractionDto>();
+
+        // loop على كل combinations
+        for (int i = 0; i < drugs.Count; i++)
+        {
+            for (int j = i + 1; j < drugs.Count; j++)
+            {
+                var singleRequest = new CheckDrugInteractionRequest
+                {
+                    Drug1 = drugs[i],
+                    Drug2 = drugs[j]
+                };
+
+                var result = await CheckInteractionAsync(singleRequest, userId);
+
+                results.Add(result);
+            }
+        }
+
+        return results;
     }
 }

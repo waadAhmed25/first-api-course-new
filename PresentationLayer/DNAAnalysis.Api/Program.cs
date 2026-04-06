@@ -19,6 +19,9 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Serilog;
 using DNAAnalysis.ServiceAbstraction;
+using Microsoft.AspNetCore.Mvc;
+using DNAAnalysis.API.Responses;
+using System.Text.Json;
 
 // ================= SERILOG CONFIG =================
 Log.Logger = new LoggerConfiguration()
@@ -61,7 +64,28 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddControllers();
+builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
+
+// ================= Controllers + Validation =================
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context.ModelState
+                .Where(x => x.Value != null && x.Value.Errors.Count > 0)
+                .SelectMany(x => x.Value!.Errors)
+                .Select(x => x.ErrorMessage)
+                .ToList();
+
+            var response = new ApiResponse<string>(
+                errors,
+                "Bad Request"
+            );
+
+            return new BadRequestObjectResult(response);
+        };
+    });
 
 // ================= Database =================
 builder.Services.AddDbContext<StoreIdentityDbContext>(options =>
@@ -108,17 +132,17 @@ builder.Services.AddScoped<IGeneticResultService, GeneticResultService>();
 // ===== AutoMapper =====
 builder.Services.AddAutoMapper(typeof(DrugProfile).Assembly);
 
-
 // ===== Drug Module Service =====
 builder.Services.AddScoped<IDrugService, DrugService>();
 builder.Services.AddScoped<IDrugInteractionClient, FakeDrugInteractionClient>();
 
 // ===== Nutrition Module Service =====
 builder.Services.AddScoped<INutritionService, NutritionService>();
+
 // ===== Alarm Module Service =====
 builder.Services.AddScoped<IReminderService, ReminderService>();
 
-// ================= JWT Authentication =================
+// ================= JWT Authentication (🔥 المهم هنا) =================
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -137,6 +161,40 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["JwtOptions:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(builder.Configuration["JwtOptions:SecretKey"]!))
+    };
+
+    // 🔥 هنا بقى السحر
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = async context =>
+        {
+            context.HandleResponse();
+
+            context.Response.StatusCode = 401;
+            context.Response.ContentType = "application/json";
+
+            var response = new ApiResponse<string>(
+                new List<string> { "You are not logged in." },
+                "Unauthorized"
+            );
+
+            var json = JsonSerializer.Serialize(response);
+            await context.Response.WriteAsync(json);
+        },
+
+        OnForbidden = async context =>
+        {
+            context.Response.StatusCode = 403;
+            context.Response.ContentType = "application/json";
+
+            var response = new ApiResponse<string>(
+                new List<string> { "You are not authorized. Admin access only." },
+                "Forbidden"
+            );
+
+            var json = JsonSerializer.Serialize(response);
+            await context.Response.WriteAsync(json);
+        }
     };
 });
 

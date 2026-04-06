@@ -5,6 +5,7 @@ using DNAAnalysis.Domain.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 
 
+
 public static class WebApplicationRegistration{
 public static async Task<WebApplication> MigrateIdentityDatabaseAsync(
     this WebApplication app)

@@ -81,4 +81,21 @@ public class DrugController : ControllerBase
     {
         return User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
     }
+
+// ================= CHECK MULTIPLE =================
+[HttpPost("check-multiple")]
+public async Task<ActionResult<ApiResponse<IEnumerable<DrugInteractionDto>>>> CheckMultiple(
+    CheckMultipleDrugsRequest request)
+{
+    var userId = GetUserId();
+
+    var result = await _drugService
+        .CheckMultipleInteractionsAsync(request, userId);
+
+    return Ok(new ApiResponse<IEnumerable<DrugInteractionDto>>(
+        result,
+        "Interactions checked successfully"
+    ));
 }
+}
+

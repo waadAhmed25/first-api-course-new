@@ -15,4 +15,8 @@ public interface IDrugService
     Task<DrugInteractionDto> CheckInteractionAsync(
         CheckDrugInteractionRequest request,
         string userId);
+
+    Task<IEnumerable<DrugInteractionDto>> CheckMultipleInteractionsAsync(
+    CheckMultipleDrugsRequest request,
+    string userId);
 }
