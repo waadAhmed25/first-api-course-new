@@ -15,86 +15,68 @@ namespace DNAAnalysis.Api.Validators
             RuleFor(x => x)
                 .Custom((request, context) =>
                 {
-                    var father = NormalizeFile(request.FatherFile);
-                    var mother = NormalizeFile(request.MotherFile);
-                    var individual = NormalizeFile(request.IndividualFile);
+                    var father = request.FatherFile;
+                    var mother = request.MotherFile;
+                    var individual = request.IndividualFile;
+
+                    // 🔥 fix swagger empty file
+                    if (father != null && father.Length == 0) father = null;
+                    if (mother != null && mother.Length == 0) mother = null;
+                    if (individual != null && individual.Length == 0) individual = null;
 
                     // ================= MoreThanOne =================
                     if (request.TestType == TestType.MoreThanOne)
                     {
-                        // ❌ رفع Individual بس
                         if (individual != null && father == null && mother == null)
                         {
                             context.AddFailure("This test requires father and mother files. Individual file is not allowed.");
+                            return;
                         }
 
-                        // ❌ رفع Individual مع الأب/الأم
-                        if (individual != null)
-                        {
-                            context.AddFailure("Individual file is not allowed in this test.");
-                        }
-
-                        // ❌ مفيش حاجة خالص
                         if (father == null && mother == null)
                         {
+                            context.AddFailure("Father and Mother files are required.");
+                            return;
+                        }
+
+                        if (individual != null)
+                            context.AddFailure("Individual file is not allowed in this test.");
+
+                        if (father == null)
                             context.AddFailure("Father file is required.");
+
+                        if (mother == null)
                             context.AddFailure("Mother file is required.");
-                        }
 
-                        // ❌ ناقص واحد
-                        else
-                        {
-                            if (father == null)
-                                context.AddFailure("Father file is required.");
-
-                            if (mother == null)
-                                context.AddFailure("Mother file is required.");
-                        }
-
-                        // ✅ validate type
                         if (father != null && !IsValidExtension(father))
-                            context.AddFailure("Father file type is invalid. Only .txt allowed.");
+                            context.AddFailure("Invalid father file type. Only .txt allowed.");
 
                         if (mother != null && !IsValidExtension(mother))
-                            context.AddFailure("Mother file type is invalid. Only .txt allowed.");
+                            context.AddFailure("Invalid mother file type. Only .txt allowed.");
                     }
 
                     // ================= Individual =================
-                    else if (request.TestType == TestType.Individual)
+                    if (request.TestType == TestType.Individual)
                     {
-                        // ❌ رفع أب/أم بس
                         if ((father != null || mother != null) && individual == null)
                         {
                             context.AddFailure("This test requires only your file. Father or Mother files are not allowed.");
+                            return;
                         }
 
-                        // ❌ رفع كله مع بعض
                         if (father != null || mother != null)
-                        {
                             context.AddFailure("Father or Mother files are not allowed in Individual test.");
-                        }
 
-                        // ❌ مفيش حاجة
                         if (individual == null)
                         {
                             context.AddFailure("Individual file is required.");
+                            return;
                         }
 
-                        // ✅ validate type
                         if (individual != null && !IsValidExtension(individual))
-                        {
                             context.AddFailure("Invalid file type. Only .txt allowed.");
-                        }
                     }
                 });
-        }
-
-        private IFormFile? NormalizeFile(IFormFile? file)
-        {
-            if (file != null && file.Length == 0)
-                return null;
-
-            return file;
         }
 
         private bool IsValidExtension(IFormFile file)
