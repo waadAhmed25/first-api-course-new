@@ -38,9 +38,13 @@ namespace DNAAnalysis.Services
         await smtpClient.SendMailAsync(mailMessage);
     }
     catch (Exception ex)
-    {
-        throw new Exception("SMTP ERROR: " + ex.Message);
-    }
+{
+    // log بس
+    Console.WriteLine($"Email error: {ex.Message}");
+
+    // ما تكسرش النظام
+    return;
+}
 }
 
     }

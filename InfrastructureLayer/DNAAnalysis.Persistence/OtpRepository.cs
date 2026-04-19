@@ -35,4 +35,17 @@ public class OtpRepository : IOtpRepository
     {
         await _context.SaveChangesAsync();
     }
+
+    // ✅ جديد
+    public async Task<List<OtpCode>> GetOtpsByUserAndPurposeAsync(string userId, string purpose)
+    {
+        return await _context.OtpCodes
+            .Where(o => o.UserId == userId && o.Purpose == purpose)
+            .ToListAsync();
+    }
+
+    public void RemoveRange(List<OtpCode> otps)
+    {
+        _context.OtpCodes.RemoveRange(otps);
+    }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using DNAAnalysis.Domain.Entities.IdentityModule;
 using DNAAnalysis.Domain.Contracts;
+using Microsoft.EntityFrameworkCore;
 
 namespace DNAAnalysis.Persistence.IdentityData.DataSeed;
 
@@ -21,7 +22,7 @@ public class IdentityDataInitializer : IDataInitializer
     {
         try
         {
-            // 1️⃣ Seed Roles (Safe Way)
+            // 1️⃣ Seed Roles
             if (!await _roleManager.RoleExistsAsync("Admin"))
             {
                 await _roleManager.CreateAsync(new IdentityRole("Admin"));
@@ -32,8 +33,17 @@ public class IdentityDataInitializer : IDataInitializer
                 await _roleManager.CreateAsync(new IdentityRole("SuperAdmin"));
             }
 
-            // 2️⃣ Seed Real Admin
-            var existingAdmin = await _userManager.FindByEmailAsync("waadodeana@outlook.com");
+            // 2️⃣ Check Admin safely (بدل FindByEmailAsync)
+            var users = await _userManager.Users
+                .Where(u => u.Email == "waadodeana@outlook.com")
+                .ToListAsync();
+
+            var existingAdmin = users.FirstOrDefault();
+
+            if (users.Count > 1)
+            {
+                Console.WriteLine("WARNING: Duplicate emails in seeding.");
+            }
 
             if (existingAdmin == null)
             {
@@ -41,7 +51,7 @@ public class IdentityDataInitializer : IDataInitializer
                 {
                     DisplayName = "waad Ahmed",
                     UserName = "waadAhmed27",
-                    Email = "waadodeana@outlook.com", 
+                    Email = "waadodeana@outlook.com",
                     PhoneNumber = "01000000000",
                     EmailConfirmed = true
                 };

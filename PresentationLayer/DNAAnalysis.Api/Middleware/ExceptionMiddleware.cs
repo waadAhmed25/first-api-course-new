@@ -41,20 +41,23 @@ namespace DNAAnalysis.API.Middleware
 
             // ❌ أي حاجة تانية (Server Error)
             catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
+{
+    _logger.LogError(ex, ex.Message);
 
-                context.Response.ContentType = "application/json";
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+    context.Response.ContentType = "application/json";
+    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-                var response = new ApiResponse<string>(
-                    new List<string> { "An unexpected error occurred." },
-                    "Server Error"
-                );
+    var response = new ApiResponse<string>(
+        new List<string> 
+        { 
+            ex.Message,
+            ex.InnerException?.Message ?? ""
+        },
+        "Server Error"
+    );
 
-                var json = JsonSerializer.Serialize(response);
-                await context.Response.WriteAsync(json);
-            }
-        }
+    var json = JsonSerializer.Serialize(response);
+    await context.Response.WriteAsync(json);
+}        }
     }
 }

@@ -23,7 +23,17 @@ namespace DNAAnalysis.Persistence.IdentityData.DbContext
             builder.Entity<ApplicationUser>().ToTable("Users");
             builder.Entity<IdentityRole>().ToTable("Roles");
             builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
+             builder.Entity<ApplicationUser>()
+             .HasIndex(u => u.Email)
+             .IsUnique();
+
             builder.Entity<Address>().ToTable("Addresses");
+            builder.Entity<OtpCode>()
+            .HasOne(o => o.User)
+            .WithMany(u => u.OtpCodes)
+           .HasForeignKey(o => o.UserId)
+           .OnDelete(DeleteBehavior.Cascade);
+
         }
     }
 }

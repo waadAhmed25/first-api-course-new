@@ -3,6 +3,7 @@ using System;
 namespace DNAAnalysis.Domain.Entities.IdentityModule;
 
 
+
 public class OtpCode
 {
     public int Id { get; set; }

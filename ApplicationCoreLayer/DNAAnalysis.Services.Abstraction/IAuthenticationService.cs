@@ -5,7 +5,7 @@ namespace DNAAnalysis.Services.Abstraction;
 
 public interface IAuthenticationService
 {
-    //login
+    //login 
     //email, password==> token , Displayname, Email
     Task<Result<UserDto>> LoginAsync(LoginDto loginDto);
      
