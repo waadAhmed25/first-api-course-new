@@ -21,7 +21,10 @@ using Serilog;
 using DNAAnalysis.ServiceAbstraction;
 using Microsoft.AspNetCore.Mvc;
 using DNAAnalysis.API.Responses;
+using DNAAnalysis.API.Converters;
+using DNAAnalysis.Shared.Enums;
 using System.Text.Json;
+
 using DNAAnalysis.API.Filters; // ✅ مهم جدًا
 
 // ================= SERILOG CONFIG =================
@@ -69,29 +72,48 @@ builder.Services.AddSwaggerGen(options =>
     options.SchemaFilter<EnumSchemaFilter>();
 });
 
+
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
 
 // ================= Controllers + Validation =================
 builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
+
+        options.JsonSerializerOptions.Converters.Add(
+            new TimeSpanConverter()); // 👈 ده الجديد
+
+             // ✅ الجداد
+        options.JsonSerializerOptions.Converters.Add(
+            new NullableDateTimeConverter());
+
+        options.JsonSerializerOptions.Converters.Add(
+            new NullableEnumConverter<ReminderType>());
+           
+            options.JsonSerializerOptions.Converters.Add(
+            new NullableTimeSpanConverter());
+    })
     .ConfigureApiBehaviorOptions(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
-        {
-            var errors = context.ModelState
-                .Where(x => x.Value != null && x.Value.Errors.Count > 0)
-                .SelectMany(x => x.Value!.Errors)
-                .Select(x => x.ErrorMessage)
-                .ToList();
+{
+    var errors = context.ModelState
+        .SelectMany(x => x.Value!.Errors)
+        .Select(e => string.IsNullOrEmpty(e.ErrorMessage)
+            ? "Invalid input format"
+            : e.ErrorMessage)
+        .ToList();
 
-            var response = new ApiResponse<string>(
-                errors,
-                "Bad Request"
-            );
+    var response = new ApiResponse<string>(
+        errors,
+        "Validation Error"
+    );
 
-            return new BadRequestObjectResult(response);
-        };
+    return new BadRequestObjectResult(response);
+};
     });
-
 // ================= Database =================
 builder.Services.AddDbContext<StoreIdentityDbContext>(options =>
 {

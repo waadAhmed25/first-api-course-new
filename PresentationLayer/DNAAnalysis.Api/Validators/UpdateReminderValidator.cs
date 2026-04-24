@@ -8,23 +8,35 @@ public class UpdateReminderValidator : AbstractValidator<UpdateReminderDto>
     public UpdateReminderValidator()
     {
         RuleFor(x => x.Title)
-            .NotEmpty()
-            .MaximumLength(200);
+            .NotEmpty().WithMessage("Title is required")
+            .MinimumLength(3).WithMessage("Title must be at least 3 characters")
+            .MaximumLength(200)
+            .Must(t => !string.IsNullOrWhiteSpace(t))
+            .WithMessage("Title cannot be empty or spaces only");
 
         RuleFor(x => x.Description)
-            .MaximumLength(500);
+            .NotEmpty().WithMessage("Description is required")
+            .MinimumLength(5).WithMessage("Description must be meaningful")
+            .MaximumLength(500)
+            .Must(d => !string.IsNullOrWhiteSpace(d))
+            .WithMessage("Description cannot be empty or spaces only");
 
         RuleFor(x => x.Date)
-            .GreaterThanOrEqualTo(DateTime.Today);
+            .GreaterThanOrEqualTo(DateTime.Today)
+            .WithMessage("Date must be today or later (format: yyyy-MM-dd)");
 
         RuleFor(x => x.StartTime)
-            .NotEmpty();
+            .NotNull()
+            .WithMessage("Start time is required (format: HH:mm:ss)")
+            .Must(t => t != TimeSpan.Zero)
+            .WithMessage("Start time must be a valid time (format: HH:mm:ss)");
 
         RuleFor(x => x.EndTime)
             .GreaterThan(x => x.StartTime)
-            .When(x => x.EndTime.HasValue);
+.When(x => x.EndTime.HasValue && x.StartTime != default)            .WithMessage("End time must be after start time (format: HH:mm:ss)");
 
         RuleFor(x => x.ReminderType)
-            .IsInEnum();
+            .IsInEnum()
+            .WithMessage("Invalid reminder type");
     }
 }

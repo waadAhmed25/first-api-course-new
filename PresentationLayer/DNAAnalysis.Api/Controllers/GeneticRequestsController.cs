@@ -120,16 +120,23 @@ public async Task<ActionResult<ApiResponse<object>>> Create([FromForm] CreateGen
 
     [Authorize(Roles = "Admin")]
     [HttpPut("{id}/status")]
-    public async Task<ActionResult<ApiResponse<object>>> UpdateStatus(
+        public async Task<ActionResult<ApiResponse<object>>> UpdateStatus(
         int id,
-        [FromBody] UpdateRequestStatusDto dto)
+      [FromBody] UpdateRequestStatusDto dto)
+{
+    if (dto == null)
     {
-        await _service.UpdateStatusAsync(id, dto.Status);
-
-        return Ok(new ApiResponse<EmptyResponse>(
-    new EmptyResponse(),
-    "Status updated successfully"));
+        return BadRequest(new ApiResponse<string>(
+            new List<string> { "Request body is required." },
+            "Validation Error"));
     }
+
+    await _service.UpdateStatusAsync(id, dto.Status);
+
+    return Ok(new ApiResponse<EmptyResponse>(
+        new EmptyResponse(),
+        "Status updated successfully"));
+}
 
     // ================= PRIVATE =================
 

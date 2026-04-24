@@ -13,13 +13,13 @@ public class CreateReminderDto
     public string? Description { get; set; }
 
     [Required]
-    public ReminderType ReminderType { get; set; }
+    public ReminderType? ReminderType { get; set; }   // 👈 مهم
 
     [Required]
-    public DateTime Date { get; set; }
+    public DateTime? Date { get; set; }  
 
-    [Required]
-    public TimeSpan StartTime { get; set; }
+    
+    public TimeSpan? StartTime { get; set; }
 
     public TimeSpan? EndTime { get; set; }
 }

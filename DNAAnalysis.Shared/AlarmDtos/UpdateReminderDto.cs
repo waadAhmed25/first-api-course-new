@@ -5,7 +5,7 @@ namespace DNAAnalysis.Shared.DTOs.Alarm;
 
 public class UpdateReminderDto
 {
-    [Required]
+   [Required]
     [MaxLength(200)]
     public string Title { get; set; } = null!;
 
@@ -13,13 +13,13 @@ public class UpdateReminderDto
     public string? Description { get; set; }
 
     [Required]
-    public ReminderType ReminderType { get; set; }
+    public ReminderType? ReminderType { get; set; }   // 👈 fix
 
     [Required]
-    public DateTime Date { get; set; }
+    public DateTime? Date { get; set; }               // 👈 fix
 
-    [Required]
-    public TimeSpan StartTime { get; set; }
+    public TimeSpan? StartTime { get; set; }          // 👈 خليها nullable
 
     public TimeSpan? EndTime { get; set; }
+
 }
