@@ -27,13 +27,18 @@ public class DrugService : IDrugService
     {
         var repo = _unitOfWork.GetRepository<DrugInteraction, int>();
         var drugs = await repo.GetAllAsync();
+
         return _mapper.Map<IEnumerable<DrugInteractionDto>>(drugs);
     }
 
     // ================= GET BY ID (SECURE) =================
-    public async Task<DrugInteractionDto?> GetByIdAsync(int id, string userId, bool isAdmin)
+    public async Task<DrugInteractionDto?> GetByIdAsync(
+        int id,
+        string userId,
+        bool isAdmin)
     {
         var repo = _unitOfWork.GetRepository<DrugInteraction, int>();
+
         var drug = await repo.GetByIdAsync(id);
 
         if (drug is null)
@@ -46,7 +51,8 @@ public class DrugService : IDrugService
     }
 
     // ================= USER HISTORY =================
-    public async Task<IEnumerable<DrugInteractionDto>> GetUserDrugInteractionsAsync(string userId)
+    public async Task<IEnumerable<DrugInteractionDto>> GetUserDrugInteractionsAsync(
+        string userId)
     {
         var repo = _unitOfWork.GetRepository<DrugInteraction, int>();
 
@@ -57,9 +63,13 @@ public class DrugService : IDrugService
     }
 
     // ================= DELETE =================
-    public async Task<bool> DeleteInteractionAsync(int id, string userId, bool isAdmin)
+    public async Task<bool> DeleteInteractionAsync(
+        int id,
+        string userId,
+        bool isAdmin)
     {
         var repo = _unitOfWork.GetRepository<DrugInteraction, int>();
+
         var interaction = await repo.GetByIdAsync(id);
 
         if (interaction is null)
@@ -69,6 +79,7 @@ public class DrugService : IDrugService
             return false;
 
         repo.Remove(interaction);
+
         await _unitOfWork.SaveChangeAsync();
 
         return true;
@@ -83,25 +94,29 @@ public class DrugService : IDrugService
         request.Drug1 = request.Drug1.Trim();
         request.Drug2 = request.Drug2.Trim();
 
-        var aiResult = await _drugClient.CheckInteractionAsync(request);
+        var aiResult =
+            await _drugClient.CheckInteractionAsync(request);
 
         aiResult.UserId = userId;
 
-        var repo = _unitOfWork.GetRepository<DrugInteraction, int>();
-        var entity = _mapper.Map<DrugInteraction>(aiResult);
+        var repo =
+            _unitOfWork.GetRepository<DrugInteraction, int>();
+
+        var entity =
+            _mapper.Map<DrugInteraction>(aiResult);
 
         await repo.AddAsync(entity);
+
         await _unitOfWork.SaveChangeAsync();
 
         return aiResult;
     }
 
     // ================= CHECK MULTIPLE =================
-    public async Task<IEnumerable<DrugInteractionDto>> CheckMultipleInteractionsAsync(
-        CheckMultipleDrugsRequest request,
-        string userId)
+    public async Task<object> CheckMultipleInteractionsAsync(
+        CheckMultipleDrugsRequest request)
     {
-        // ✅ Prevent null (بدون ما نكرر validation)
+        // ✅ Prevent null
         var drugs = request.Drugs ?? new List<string>();
 
         // ✅ Normalize + Clean
@@ -111,25 +126,8 @@ public class DrugService : IDrugService
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        var results = new List<DrugInteractionDto>();
-
-        // loop على كل combinations
-        for (int i = 0; i < drugs.Count; i++)
-        {
-            for (int j = i + 1; j < drugs.Count; j++)
-            {
-                var singleRequest = new CheckDrugInteractionRequest
-                {
-                    Drug1 = drugs[i],
-                    Drug2 = drugs[j]
-                };
-
-                var result = await CheckInteractionAsync(singleRequest, userId);
-
-                results.Add(result);
-            }
-        }
-
-        return results;
+        // ✅ Send directly to AI
+        return await _drugClient
+            .CheckMultipleInteractionsAsync(drugs);
     }
 }

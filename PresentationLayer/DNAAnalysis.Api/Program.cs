@@ -163,8 +163,10 @@ builder.Services.AddAutoMapper(typeof(DrugProfile).Assembly);
 
 // ===== Drug Module Service =====
 builder.Services.AddScoped<IDrugService, DrugService>();
-builder.Services.AddScoped<IDrugInteractionClient, FakeDrugInteractionClient>();
-
+builder.Services.AddHttpClient<IDrugInteractionClient, RealDrugInteractionClient>(client =>
+{
+    client.BaseAddress = new Uri("https://mahi20004-drug-interaction-api.hf.space");
+});
 // ===== Nutrition Module Service =====
 builder.Services.AddScoped<INutritionService, NutritionService>();
 
