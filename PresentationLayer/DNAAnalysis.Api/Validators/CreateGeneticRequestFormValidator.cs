@@ -8,8 +8,7 @@ namespace DNAAnalysis.Api.Validators
     public class CreateGeneticRequestFormValidator 
         : AbstractValidator<CreateGeneticRequestFormDto>
     {
-        private readonly string[] AllowedExtensions = { ".txt" };
-
+private readonly string[] AllowedExtensions = { ".txt", ".vcf" };
         public CreateGeneticRequestFormValidator()
         {
             RuleFor(x => x)
@@ -49,11 +48,9 @@ namespace DNAAnalysis.Api.Validators
                             context.AddFailure("Mother file is required.");
 
                         if (father != null && !IsValidExtension(father))
-                            context.AddFailure("Invalid father file type. Only .txt allowed.");
-
+                            context.AddFailure("Invalid father file type. Only .txt and .vcf allowed.");
                         if (mother != null && !IsValidExtension(mother))
-                            context.AddFailure("Invalid mother file type. Only .txt allowed.");
-                    }
+                           context.AddFailure("Invalid mother file type. Only .txt and .vcf allowed.");                    }
 
                     // ================= Individual =================
                     if (request.TestType == TestType.Individual)
@@ -74,7 +71,7 @@ namespace DNAAnalysis.Api.Validators
                         }
 
                         if (individual != null && !IsValidExtension(individual))
-                            context.AddFailure("Invalid file type. Only .txt allowed.");
+                            context.AddFailure("Invalid file type. Only .txt and .vcf allowed.");
                     }
                 });
         }

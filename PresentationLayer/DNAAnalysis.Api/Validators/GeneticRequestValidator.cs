@@ -94,12 +94,12 @@ public static class GeneticRequestValidator
 
     private static string? ValidateFileType(IFormFile file)
     {
-        var allowed = new[] { ".txt" };
+       var allowed = new[] { ".txt", ".vcf" };
 
         var ext = Path.GetExtension(file.FileName).ToLower();
 
         if (!allowed.Contains(ext))
-            return "Invalid file type. Only .txt files are allowed.";
+            return "Invalid file type. Only .txt and .vcf files are allowed.";
 
         return null;
     }

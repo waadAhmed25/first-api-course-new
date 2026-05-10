@@ -143,9 +143,8 @@ builder.Services.Configure<EmailSettings>(
 
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// ✅ Fake AI (زي ما إنتي عايزة)
-builder.Services.AddScoped<IGeneticAnalysisClient, FakeGeneticAnalysisClient>();
-
+// ✅ Real Genetic AI Client
+builder.Services.AddHttpClient<IGeneticAnalysisClient, RealGeneticAnalysisClient>();
 // ================= FluentValidation =================
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();

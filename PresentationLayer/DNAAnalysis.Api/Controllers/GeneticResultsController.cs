@@ -2,9 +2,9 @@ using DNAAnalysis.Services.Abstraction;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using DNAAnalysis.API.Responses;
+using DNAAnalysis.Shared.GeneticResultDtos;
 
 namespace DNAAnalysis.Api.Controllers
-
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -19,7 +19,7 @@ namespace DNAAnalysis.Api.Controllers
 
         [Authorize]
         [HttpGet("{requestId}")]
-        public async Task<ActionResult<ApiResponse<object>>> GetResult(int requestId)
+        public async Task<ActionResult<ApiResponse<GeneticResultDto>>> GetResult(int requestId)
         {
             var result = await _resultService.GetResultByRequestIdAsync(requestId);
 
@@ -27,7 +27,7 @@ namespace DNAAnalysis.Api.Controllers
                 return NotFound(new ApiResponse<string>(
                     new List<string> { "Result not found" }, "Not Found"));
 
-            return Ok(new ApiResponse<object>(
+            return Ok(new ApiResponse<GeneticResultDto>(
                 result,
                 "Genetic result retrieved successfully"));
         }

@@ -1,9 +1,15 @@
 using DNAAnalysis.Shared.GeneticRequestDtos;
 using DNAAnalysis.Shared.Enums;
+using Microsoft.AspNetCore.Http;
 
 public interface IGeneticRequestService
 {
-    Task<int> CreateRequestAsync(string userId, CreateGeneticRequestDto dto);
+    Task<int> CreateRequestAsync(
+        string userId,
+        CreateGeneticRequestDto dto,
+        IFormFile? fatherFile,
+        IFormFile? motherFile,
+        IFormFile? individualFile);
 
     Task<IEnumerable<GeneticRequestDto>> GetUserRequestsAsync(string userId);
 
@@ -11,8 +17,10 @@ public interface IGeneticRequestService
 
     Task<GeneticRequestDto?> GetByIdAsync(int id);
 
-    // ✅ الجديدة
-    Task<GeneticRequestDto?> GetByIdForUserAsync(int id, string userId, bool isAdmin);
+    Task<GeneticRequestDto?> GetByIdForUserAsync(
+        int id,
+        string userId,
+        bool isAdmin);
 
     Task UpdateStatusAsync(int id, RequestStatus status);
 }

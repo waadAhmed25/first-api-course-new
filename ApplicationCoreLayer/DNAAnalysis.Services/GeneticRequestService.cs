@@ -4,6 +4,7 @@ using DNAAnalysis.Domain.Entities.GeneticModule;
 using DNAAnalysis.Services.Abstraction;
 using DNAAnalysis.Shared.GeneticRequestDtos;
 using DNAAnalysis.Shared.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace DNAAnalysis.Services;
 
@@ -23,7 +24,12 @@ public class GeneticRequestService : IGeneticRequestService
         _aiClient = aiClient;
     }
 
-    public async Task<int> CreateRequestAsync(string userId, CreateGeneticRequestDto dto)
+    public async Task<int> CreateRequestAsync(
+        string userId,
+        CreateGeneticRequestDto dto,
+        IFormFile? fatherFile,
+        IFormFile? motherFile,
+        IFormFile? individualFile)
     {
         // ================= CREATE =================
 
@@ -31,7 +37,7 @@ public class GeneticRequestService : IGeneticRequestService
         {
             UserId = userId,
 
-            // ✅ مهم جدًا: بقى nullable
+            // ✅ نحفظ paths عادي زي ما عندك
             FatherFilePath = dto.FatherFilePath,
             MotherFilePath = dto.MotherFilePath,
             ChildFilePath = dto.IndividualFilePath,
@@ -49,20 +55,19 @@ public class GeneticRequestService : IGeneticRequestService
 
         try
         {
-           var result = await _aiClient.AnalyzeAsync(
-    request.FatherFilePath,
-    request.MotherFilePath,
-    request.ChildFilePath,
-    request.TestType
-);
+            // ✅ بقى نبعت files الحقيقية
+            var rawJson = await _aiClient.AnalyzeAsync(
+                fatherFile,
+                motherFile,
+                individualFile,
+                request.TestType
+            );
 
+            // ✅ نخزن الخام فقط
             var geneticResult = new GeneticResult
             {
                 GeneticRequestId = request.Id,
-                Summary = result.Summary,
-                Explanation = result.Explanation,
-                Advice = result.Advice,
-                Probabilities = result.Probabilities
+                RawAiResponse = rawJson
             };
 
             await resultRepo.AddAsync(geneticResult);
@@ -71,7 +76,6 @@ public class GeneticRequestService : IGeneticRequestService
         }
         catch (Exception)
         {
-            // ✅ ما نكسرش السيستم
             request.Status = RequestStatus.Failed;
         }
 
@@ -110,7 +114,10 @@ public class GeneticRequestService : IGeneticRequestService
         return _mapper.Map<GeneticRequestDto?>(request);
     }
 
-    public async Task<GeneticRequestDto?> GetByIdForUserAsync(int id, string userId, bool isAdmin)
+    public async Task<GeneticRequestDto?> GetByIdForUserAsync(
+        int id,
+        string userId,
+        bool isAdmin)
     {
         var request = await _unitOfWork
             .GetRepository<GeneticRequest, int>()

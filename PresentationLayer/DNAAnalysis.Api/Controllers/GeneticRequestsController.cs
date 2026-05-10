@@ -67,8 +67,13 @@ public async Task<ActionResult<ApiResponse<object>>> Create([FromForm] CreateGen
         TestType = form.TestType
     };
 
-    var requestId = await _service.CreateRequestAsync(userId, dto);
-
+var requestId = await _service.CreateRequestAsync(
+    userId,
+    dto,
+    form.FatherFile,
+    form.MotherFile,
+    form.IndividualFile);
+    
     return Ok(new ApiResponse<object>(
         new { Id = requestId },
         "Genetic request created successfully"));

@@ -1,13 +1,13 @@
-using DNAAnalysis.Shared.GeneticResultDtos;
+using Microsoft.AspNetCore.Http;
 using DNAAnalysis.Shared.Enums;
 
 namespace DNAAnalysis.Services.Abstraction;
 
 public interface IGeneticAnalysisClient
 {
-    Task<GeneticResultDto> AnalyzeAsync(
-        string? fatherPath,   // ✅ nullable
-        string? motherPath,   // ✅ nullable
-        string? childPath,
+    Task<string> AnalyzeAsync(
+        IFormFile? fatherFile,
+        IFormFile? motherFile,
+        IFormFile? individualFile,
         TestType testType);
 }
