@@ -167,8 +167,11 @@ builder.Services.AddHttpClient<IDrugInteractionClient, RealDrugInteractionClient
     client.BaseAddress = new Uri("https://mahi20004-drug-interaction-api.hf.space");
 });
 // ===== Nutrition Module Service =====
-builder.Services.AddScoped<INutritionService, NutritionService>();
-
+builder.Services.AddHttpClient<IAiNutritionClient, RealAiNutritionClient>(client =>
+{
+    client.BaseAddress =
+        new Uri("https://emily76-cf-nutrition-api.hf.space");
+});
 // ===== Alarm Module Service =====
 builder.Services.AddScoped<IReminderService, ReminderService>();
 

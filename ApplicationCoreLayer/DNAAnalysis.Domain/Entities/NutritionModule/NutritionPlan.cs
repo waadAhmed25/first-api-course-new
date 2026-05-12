@@ -6,15 +6,18 @@ public class NutritionPlan : BaseEntity<int>
 {
     public int NutritionProfileId { get; set; }
 
-    public int TotalCalories { get; set; }
+    // ✅ AI Main Values
+    public double Bmr { get; set; }
 
-    public double ProteinPercentage { get; set; }
+    public double Tdee { get; set; }
 
-    public double CarbsPercentage { get; set; }
+    public double FinalCaloriesGoal { get; set; }
 
-    public double FatPercentage { get; set; }
+    // ✅ نخزن الـ response الخام كامل
+    public string AiRawResponse { get; set; } = null!;
 
     public NutritionProfile NutritionProfile { get; set; } = null!;
 
-    public ICollection<MealSuggestion> MealSuggestions { get; set; } = new List<MealSuggestion>();
+    public ICollection<MealSuggestion> MealSuggestions { get; set; }
+        = new List<MealSuggestion>();
 }

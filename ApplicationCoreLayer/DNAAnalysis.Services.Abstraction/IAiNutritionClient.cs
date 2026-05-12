@@ -1,14 +1,9 @@
-using DNAAnalysis.Domain.Entities.NutritionModule;
+using DNAAnalysis.Shared.NutritionDtos.AI;
 
 namespace DNAAnalysis.Services.Abstraction;
 
 public interface IAiNutritionClient
 {
-    Task<NutritionPlan> GeneratePlanAsync(
-        double weight,
-        double height,
-        int age,
-        string gender,
-        string activityLevel,
-        string patientStatus);
+    Task<AiNutritionResponseDto> GeneratePlanAsync(
+        AiNutritionRequestDto request);
 }

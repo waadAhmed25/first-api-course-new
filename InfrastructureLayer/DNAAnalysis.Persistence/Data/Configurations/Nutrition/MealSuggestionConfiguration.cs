@@ -10,17 +10,19 @@ public class MealSuggestionConfiguration : IEntityTypeConfiguration<MealSuggesti
     {
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.FoodName)
-            .IsRequired()
-            .HasMaxLength(200);
-
         builder.Property(x => x.Calories)
             .IsRequired();
 
-            builder.Property(x => x.Grams)
+        builder.Property(x => x.MealType)
             .IsRequired();
 
-        builder.Property(x => x.MealType)
+        builder.Property(x => x.ProteinGrams)
+            .IsRequired();
+
+        builder.Property(x => x.CarbsGrams)
+            .IsRequired();
+
+        builder.Property(x => x.FatGrams)
             .IsRequired();
     }
 }

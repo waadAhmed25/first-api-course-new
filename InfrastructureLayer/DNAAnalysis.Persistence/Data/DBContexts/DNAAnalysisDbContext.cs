@@ -28,6 +28,7 @@ namespace DNAAnalysis.Persistence.Data.DBContexts
         public DbSet<NutritionProfile> NutritionProfiles { get; set; }
         public DbSet<NutritionPlan> NutritionPlans { get; set; }
         public DbSet<MealSuggestion> MealSuggestions { get; set; }
+        public DbSet<MealOption> MealOptions { get; set; }
 
         // ✅ Apply Configurations
         protected override void OnModelCreating(ModelBuilder modelBuilder)
