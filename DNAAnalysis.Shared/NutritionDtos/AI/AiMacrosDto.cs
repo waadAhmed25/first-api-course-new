@@ -1,10 +1,21 @@
+using System.Text.Json.Serialization;
+
 namespace DNAAnalysis.Shared.NutritionDtos.AI;
 
 public class AiMacrosDto
 {
-    public double Protein { get; set; }
+    [JsonPropertyName("protein")]
+    public MacroValue Protein { get; set; } = null!;
 
-    public double Carbs { get; set; }
+    [JsonPropertyName("carbs")]
+    public MacroValue Carbs { get; set; } = null!;
 
-    public double Fat { get; set; }
+    [JsonPropertyName("fat")]
+    public MacroValue Fat { get; set; } = null!;
+}
+
+public class MacroValue
+{
+    [JsonPropertyName("grams")]
+    public double Grams { get; set; }
 }

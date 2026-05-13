@@ -73,10 +73,10 @@ public class NutritionController : ControllerBase
             ));
         }
 
-        return Ok(new ApiResponse<NutritionPlanDto>(
-            plan,
-            "Nutrition plan retrieved successfully"
-        ));
+      return Ok(new ApiResponse<NutritionPlanDto>(
+    plan,
+    "Nutrition plan generated successfully"
+));
     }
 
     // ✅ FIXED

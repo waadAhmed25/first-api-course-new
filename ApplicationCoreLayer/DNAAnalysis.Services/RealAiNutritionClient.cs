@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
-using System.Text.Json;
 using DNAAnalysis.Services.Abstraction;
+using DNAAnalysis.Shared.NutritionDtos;
 using DNAAnalysis.Shared.NutritionDtos.AI;
 
 namespace DNAAnalysis.Services;
@@ -14,8 +14,7 @@ public class RealAiNutritionClient : IAiNutritionClient
         _httpClient = httpClient;
     }
 
-    public async Task<AiNutritionResponseDto> GeneratePlanAsync(
-        AiNutritionRequestDto request)
+public async Task<AiNutritionResponseDto> GeneratePlanAsync(            AiNutritionRequestDto request)
     {
         var response = await _httpClient.PostAsJsonAsync(
             "/generate-plan",
@@ -30,8 +29,7 @@ public class RealAiNutritionClient : IAiNutritionClient
         }
 
         var result =
-            await response.Content.ReadFromJsonAsync<AiNutritionResponseDto>();
-
+await response.Content.ReadFromJsonAsync<AiNutritionResponseDto>();
         if (result == null)
             throw new Exception("AI response was null");
 

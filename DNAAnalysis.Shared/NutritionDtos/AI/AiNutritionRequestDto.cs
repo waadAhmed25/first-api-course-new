@@ -1,3 +1,7 @@
+// AiNutritionRequestDto.cs
+// تم حذف ActivityLevel و HealthCondition
+// وتم استبدالهم بـ Activity و Status
+
 namespace DNAAnalysis.Shared.NutritionDtos.AI;
 
 public class AiNutritionRequestDto
@@ -10,7 +14,9 @@ public class AiNutritionRequestDto
 
     public string Gender { get; set; } = null!;
 
-    public string ActivityLevel { get; set; } = null!;
+    public string Activity { get; set; } = null!;
 
-    public string HealthCondition { get; set; } = null!;
+    public string Status { get; set; } = null!;
+
+    public bool IncludeNightSnack { get; set; }
 }

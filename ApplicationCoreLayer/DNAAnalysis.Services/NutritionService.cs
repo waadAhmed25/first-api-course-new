@@ -2,50 +2,69 @@ using AutoMapper;
 using DNAAnalysis.Domain.Contracts;
 using DNAAnalysis.Domain.Entities.NutritionModule;
 using DNAAnalysis.ServiceAbstraction;
-using DNAAnalysis.Shared.Enums;
 using DNAAnalysis.Shared.NutritionDtos;
 using System.Text.Json;
 using DNAAnalysis.Services.Abstraction;
 using DNAAnalysis.Shared.NutritionDtos.AI;
+using DNAAnalysis.Shared.Enums;
+
 
 namespace DNAAnalysis.Services;
 
 public class NutritionService : INutritionService
 {
-   private readonly IUnitOfWork _unitOfWork;
-private readonly IMapper _mapper;
-private readonly IAiNutritionClient _aiNutritionClient;
+    private readonly IUnitOfWork _unitOfWork;
 
-public NutritionService(
-    IUnitOfWork unitOfWork,
-    IMapper mapper,
-    IAiNutritionClient aiNutritionClient)
-{
-    _unitOfWork = unitOfWork;
-    _mapper = mapper;
-    _aiNutritionClient = aiNutritionClient;
-}
+    private readonly IMapper _mapper;
 
-    public async Task CreateProfileAsync(string userId, CreateNutritionProfileDto dto)
+    private readonly IAiNutritionClient _aiNutritionClient;
+
+    public NutritionService(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        IAiNutritionClient aiNutritionClient)
     {
-        var repo = _unitOfWork.GetRepository<NutritionProfile, int>();
+        _unitOfWork = unitOfWork;
 
-        var existingProfile = await repo.GetAsync(x => x.UserId == userId);
+        _mapper = mapper;
+
+        _aiNutritionClient = aiNutritionClient;
+    }
+
+    public async Task CreateProfileAsync(
+        string userId,
+        CreateNutritionProfileDto dto)
+    {
+        var repo =
+            _unitOfWork.GetRepository<NutritionProfile, int>();
+
+        var existingProfile =
+            await repo.GetAsync(x => x.UserId == userId);
 
         if (existingProfile != null)
         {
             existingProfile.Weight = dto.Weight;
+
             existingProfile.Height = dto.Height;
+
             existingProfile.Age = dto.Age;
+
             existingProfile.Gender = dto.Gender;
-            existingProfile.ActivityLevel = dto.ActivityLevel;
-            existingProfile.PatientStatus = dto.PatientStatus;
+
+            existingProfile.Activity = dto.Activity;
+
+            existingProfile.Status = dto.Status;
+
+            existingProfile.IncludeNightSnack =
+                dto.IncludeNightSnack;
 
             repo.Update(existingProfile);
         }
         else
         {
-            var profile = _mapper.Map<NutritionProfile>(dto);
+            var profile =
+                _mapper.Map<NutritionProfile>(dto);
+
             profile.UserId = userId;
 
             await repo.AddAsync(profile);
@@ -54,30 +73,46 @@ public NutritionService(
         await _unitOfWork.SaveChangeAsync();
     }
 
-    public async Task<NutritionPlanDto?> GetUserPlanAsync(string userId)
+    public async Task<NutritionPlanDto?> GetUserPlanAsync(
+        string userId)
     {
-        var profileRepo = _unitOfWork.GetRepository<NutritionProfile, int>();
-        var planRepo = _unitOfWork.GetRepository<NutritionPlan, int>();
-        var mealRepo = _unitOfWork.GetRepository<MealSuggestion, int>();
-        var selectionRepo = _unitOfWork.GetRepository<UserMealSelection, int>();
+        var profileRepo =
+            _unitOfWork.GetRepository<NutritionProfile, int>();
 
-        var profile = await profileRepo.GetAsync(x => x.UserId == userId);
+        var planRepo =
+            _unitOfWork.GetRepository<NutritionPlan, int>();
+
+        var mealRepo =
+            _unitOfWork.GetRepository<MealSuggestion, int>();
+
+        var selectionRepo =
+            _unitOfWork.GetRepository<UserMealSelection, int>();
+
+        var profile =
+            await profileRepo.GetAsync(x => x.UserId == userId);
 
         if (profile == null)
             return null;
 
-        var plan = await planRepo.GetAsync(x => x.NutritionProfileId == profile.Id);
+        var plan =
+            await planRepo.GetAsync(
+                x => x.NutritionProfileId == profile.Id);
 
         if (plan == null)
             return null;
 
-        var meals = await mealRepo.GetAllAsync(x => x.NutritionPlanId == plan.Id);
+        var meals =
+            await mealRepo.GetAllAsync(
+                x => x.NutritionPlanId == plan.Id);
 
         var selectedMeals =
-            await selectionRepo.GetAllAsync(x => x.UserId == userId);
+            await selectionRepo.GetAllAsync(
+                x => x.UserId == userId);
 
         var selectedMealIds =
-            selectedMeals.Select(x => x.MealSuggestionId).ToList();
+            selectedMeals
+                .Select(x => x.MealSuggestionId)
+                .ToList();
 
         var eatenCalories = meals
             .Where(x => selectedMealIds.Contains(x.Id))
@@ -89,7 +124,8 @@ public NutritionService(
 
             Tdee = plan.Tdee,
 
-            FinalCaloriesGoal = plan.FinalCaloriesGoal,
+            FinalCaloriesGoal =
+                plan.FinalCaloriesGoal,
 
             EatenCalories = eatenCalories,
 
@@ -110,128 +146,150 @@ public NutritionService(
 
                 FatGrams = x.FatGrams,
 
-                Options = x.Options.Select(o => o.Name)
+                Options =
+                    x.Options.Select(o => o.Name)
             })
         };
     }
 
-    public async Task<NutritionPlanDto?> GeneratePlanAsync(string userId)
+    public async Task<NutritionPlanDto?> GeneratePlanAsync(
+        string userId)
+    {
+        var profileRepo =
+            _unitOfWork.GetRepository<NutritionProfile, int>();
+
+        var planRepo =
+            _unitOfWork.GetRepository<NutritionPlan, int>();
+
+        var mealRepo =
+            _unitOfWork.GetRepository<MealSuggestion, int>();
+
+        var profile =
+            await profileRepo.GetAsync(
+                x => x.UserId == userId);
+
+        if (profile == null)
+            throw new ArgumentException(
+                "Nutrition profile not found");
+
+        var existingPlan =
+            await planRepo.GetAsync(
+                x => x.NutritionProfileId == profile.Id);
+
+        if (existingPlan != null)
+            return await GetUserPlanAsync(userId);
+
+        var aiRequest = new AiNutritionRequestDto
+        {
+            Weight = profile.Weight,
+
+            Height = profile.Height,
+
+            Age = profile.Age,
+
+            Gender = profile.Gender,
+
+            Activity = profile.Activity,
+
+            Status = profile.Status,
+
+            IncludeNightSnack =
+                profile.IncludeNightSnack
+        };
+AiNutritionResponseDto aiResponse;
+
+try
 {
-    var profileRepo =
-        _unitOfWork.GetRepository<NutritionProfile, int>();
+    aiResponse =
+        await _aiNutritionClient
+            .GeneratePlanAsync(aiRequest);
+}
+catch (Exception)
+{
+    throw new Exception(
+        "AI nutrition service unavailable");
+}
 
-    var planRepo =
-        _unitOfWork.GetRepository<NutritionPlan, int>();
-
-    var mealRepo =
-        _unitOfWork.GetRepository<MealSuggestion, int>();
-
-    var profile =
-        await profileRepo.GetAsync(x => x.UserId == userId);
-
-    if (profile == null)
-        throw new ArgumentException("Nutrition profile not found");
-
-    var existingPlan =
-        await planRepo.GetAsync(x => x.NutritionProfileId == profile.Id);
-
-    if (existingPlan != null)
-        return await GetUserPlanAsync(userId);
-
-    // =========================
-    // Build AI Request
-    // =========================
-
-    var aiRequest = new AiNutritionRequestDto
+var meals = aiResponse.MealPlan
+    .Select((meal, index) => new MealSuggestionDto
     {
-        Weight = profile.Weight,
+        Id = index + 1,
 
-        Height = profile.Height,
+        MealType = Enum.TryParse<MealType>(
+            meal.Key.Replace(" ", ""),
+            true,
+            out var mealType)
+            ? mealType
+            : MealType.Snack,
 
-        Age = profile.Age,
+        Calories = meal.Value.Calories,
 
-        Gender = profile.Gender.ToString(),
+        ProteinGrams =
+            meal.Value.Macros.Protein.Grams,
 
-ActivityLevel = profile.ActivityLevel.ToString(),
+        CarbsGrams =
+            meal.Value.Macros.Carbs.Grams,
 
-HealthCondition = profile.PatientStatus.ToString()
-    };
+        FatGrams =
+            meal.Value.Macros.Fat.Grams,
 
-    // =========================
-    // Call AI
-    // =========================
+        Options = meal.Value.Options
+    })
+    .ToList();
 
-    var aiResponse =
-        await _aiNutritionClient.GeneratePlanAsync(aiRequest);
-
-    // =========================
-    // Save Plan
-    // =========================
-
-    var plan = new NutritionPlan
-    {
-        NutritionProfileId = profile.Id,
-
-        Bmr = aiResponse.Bmr,
-
-        Tdee = aiResponse.Tdee,
-
-        FinalCaloriesGoal = aiResponse.FinalCaloriesGoal,
-
-        AiRawResponse =
-            JsonSerializer.Serialize(aiResponse)
-    };
-
-    await planRepo.AddAsync(plan);
-
-    await _unitOfWork.SaveChangeAsync();
-
-    // =========================
-    // Save Meals
-    // =========================
-
-    foreach (var aiMeal in aiResponse.MealPlan)
-    {
-        MealType mealType;
-
-        if (!Enum.TryParse<MealType>(
-                aiMeal.MealType,
-                true,
-                out mealType))
+        var plan = new NutritionPlan
         {
-            mealType = MealType.Snack;
-        }
+            NutritionProfileId = profile.Id,
 
-        var meal = new MealSuggestion
-        {
-            NutritionPlanId = plan.Id,
+            Bmr = aiResponse.Bmr,
 
-            MealType = mealType,
+            Tdee = aiResponse.Tdee,
 
-            Calories = aiMeal.Calories,
+            FinalCaloriesGoal =
+                aiResponse.FinalCaloriesGoal,
 
-            ProteinGrams = aiMeal.Macros.Protein,
-
-            CarbsGrams = aiMeal.Macros.Carbs,
-
-            FatGrams = aiMeal.Macros.Fat,
-
-            Options = aiMeal.Options
-                .Select(option => new MealOption
-                {
-                    Name = option
-                })
-                .ToList()
+            AiRawResponse =
+                JsonSerializer.Serialize(aiResponse)
         };
 
-        await mealRepo.AddAsync(meal);
+        await planRepo.AddAsync(plan);
+
+        await _unitOfWork.SaveChangeAsync();
+foreach (var aiMeal in meals)
+{
+    var meal = new MealSuggestion
+    {
+        NutritionPlanId = plan.Id,
+
+        MealType = aiMeal.MealType,
+
+        Calories = aiMeal.Calories,
+
+        ProteinGrams = aiMeal.ProteinGrams,
+
+        CarbsGrams = aiMeal.CarbsGrams,
+
+        FatGrams = aiMeal.FatGrams,
+
+        Options = aiMeal.Options
+            .Select(option => new MealOption
+            {
+                Name = option
+            })
+            .ToList()
+    };
+
+    await mealRepo.AddAsync(meal);
+}
+
+        await _unitOfWork.SaveChangeAsync();
+
+        return await GetUserPlanAsync(userId);
     }
 
-    await _unitOfWork.SaveChangeAsync();
-
-    return await GetUserPlanAsync(userId);
-}
-    public async Task SelectMealAsync(string userId, int mealId)
+    public async Task SelectMealAsync(
+        string userId,
+        int mealId)
     {
         if (mealId <= 0)
             throw new ArgumentException("Invalid meal id");
@@ -249,13 +307,15 @@ HealthCondition = profile.PatientStatus.ToString()
             _unitOfWork.GetRepository<NutritionPlan, int>();
 
         var profile =
-            await profileRepo.GetAsync(x => x.UserId == userId);
+            await profileRepo.GetAsync(
+                x => x.UserId == userId);
 
         if (profile == null)
             throw new ArgumentException("Profile not found");
 
         var plan =
-            await planRepo.GetAsync(x => x.NutritionProfileId == profile.Id);
+            await planRepo.GetAsync(
+                x => x.NutritionProfileId == profile.Id);
 
         if (plan == null)
             throw new ArgumentException("Plan not found");
@@ -266,7 +326,10 @@ HealthCondition = profile.PatientStatus.ToString()
                 x.NutritionPlanId == plan.Id);
 
         if (meal == null)
-            throw new ArgumentException("Meal not found or not belongs to this user");
+        {
+            throw new ArgumentException(
+                "Meal not found or not belongs to this user");
+        }
 
         var existing =
             await selectionRepo.GetAsync(x =>
@@ -274,21 +337,25 @@ HealthCondition = profile.PatientStatus.ToString()
                 x.MealSuggestionId == mealId);
 
         if (existing != null)
-            throw new ArgumentException("Meal already selected");
+            throw new ArgumentException(
+                "Meal already selected");
 
-        var selection = new UserMealSelection
-        {
-            UserId = userId,
+        var selection =
+            new UserMealSelection
+            {
+                UserId = userId,
 
-            MealSuggestionId = mealId
-        };
+                MealSuggestionId = mealId
+            };
 
         await selectionRepo.AddAsync(selection);
 
         await _unitOfWork.SaveChangeAsync();
     }
 
-    public async Task UnselectMealAsync(string userId, int mealId)
+    public async Task UnselectMealAsync(
+        string userId,
+        int mealId)
     {
         if (mealId <= 0)
             throw new ArgumentException("Invalid meal id");
@@ -302,7 +369,10 @@ HealthCondition = profile.PatientStatus.ToString()
                 x.MealSuggestionId == mealId);
 
         if (existing == null)
-            throw new ArgumentException("Meal selection not found");
+        {
+            throw new ArgumentException(
+                "Meal selection not found");
+        }
 
         repo.Remove(existing);
 

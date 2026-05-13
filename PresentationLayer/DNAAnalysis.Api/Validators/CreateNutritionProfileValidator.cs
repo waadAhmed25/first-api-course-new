@@ -23,15 +23,12 @@ public class CreateNutritionProfileValidator : AbstractValidator<CreateNutrition
             .WithMessage("Age must be between 1 and 120");
 
         RuleFor(x => x.Gender)
-            .IsInEnum()
-            .WithMessage("Invalid gender value");
+    .NotEmpty();
 
-        RuleFor(x => x.ActivityLevel)
-            .IsInEnum()
-            .WithMessage("Invalid activity level");
+RuleFor(x => x.Activity)
+    .NotEmpty();
 
-        RuleFor(x => x.PatientStatus)
-            .IsInEnum()
-            .WithMessage("Invalid patient status");
+RuleFor(x => x.Status)
+    .NotEmpty();
     }
 }

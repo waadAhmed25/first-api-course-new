@@ -19,14 +19,17 @@ public class NutritionProfileConfiguration : IEntityTypeConfiguration<NutritionP
         builder.Property(x => x.Age)
             .IsRequired();
 
-        builder.Property(x => x.Gender)
-            .IsRequired();
+       builder.Property(x => x.Gender)
+    .IsRequired();
 
-        builder.Property(x => x.ActivityLevel)
-            .IsRequired();
+builder.Property(x => x.Activity)
+    .IsRequired();
 
-        builder.Property(x => x.PatientStatus)
-            .IsRequired();
+builder.Property(x => x.Status)
+    .IsRequired();
+
+builder.Property(x => x.IncludeNightSnack)
+    .IsRequired();
 
         builder.Property(x => x.UserId)
             .IsRequired();
