@@ -101,9 +101,11 @@ public class NutritionService : INutritionService
         if (plan == null)
             return null;
 
+        
         var meals =
-            await mealRepo.GetAllAsync(
-                x => x.NutritionPlanId == plan.Id);
+    await mealRepo.GetAllIncludingAsync(
+        x => x.NutritionPlanId == plan.Id,
+        x => x.Options);
 
         var selectedMeals =
             await selectionRepo.GetAllAsync(
@@ -132,23 +134,41 @@ public class NutritionService : INutritionService
             RemainingCalories =
                 plan.FinalCaloriesGoal - eatenCalories,
 
-            Meals = meals.Select(x => new MealSuggestionDto
+            MealPlan = meals.ToDictionary(
+    x => x.MealType switch
+    {
+        MealType.Breakfast => "Breakfast",
+        MealType.Lunch => "Lunch",
+        MealType.Dinner => "Dinner",
+        MealType.NightSnack => "Night Snack",
+        _ => "Snack"
+    },
+    x => new AiMealDto
+    {
+        Calories = x.Calories,
+
+        Macros = new AiMacrosDto
+        {
+            Protein = new MacroValue
             {
-                Id = x.Id,
+                Grams = x.ProteinGrams
+            },
 
-                MealType = x.MealType,
+            Carbs = new MacroValue
+            {
+                Grams = x.CarbsGrams
+            },
 
-                Calories = x.Calories,
+            Fat = new MacroValue
+            {
+                Grams = x.FatGrams
+            }
+        },
 
-                ProteinGrams = x.ProteinGrams,
-
-                CarbsGrams = x.CarbsGrams,
-
-                FatGrams = x.FatGrams,
-
-                Options =
-                    x.Options.Select(o => o.Name)
-            })
+        Options = x.Options
+            .Select(o => o.Name)
+            .ToList()
+    })
         };
     }
 
@@ -177,7 +197,21 @@ public class NutritionService : INutritionService
                 x => x.NutritionProfileId == profile.Id);
 
         if (existingPlan != null)
-            return await GetUserPlanAsync(userId);
+{
+    var oldMeals =
+        await mealRepo.GetAllIncludingAsync(
+            x => x.NutritionPlanId == existingPlan.Id,
+            x => x.Options);
+
+    foreach (var meal in oldMeals)
+    {
+        mealRepo.Remove(meal);
+    }
+
+    planRepo.Remove(existingPlan);
+
+    await _unitOfWork.SaveChangeAsync();
+}
 
         var aiRequest = new AiNutritionRequestDto
         {
@@ -200,9 +234,17 @@ AiNutritionResponseDto aiResponse;
 
 try
 {
+    Console.WriteLine(
+    JsonSerializer.Serialize(
+        aiRequest,
+        new JsonSerializerOptions
+        {
+            WriteIndented = true
+        }));
     aiResponse =
         await _aiNutritionClient
             .GeneratePlanAsync(aiRequest);
+            
 }
 catch (Exception)
 {
@@ -211,10 +253,8 @@ catch (Exception)
 }
 
 var meals = aiResponse.MealPlan
-    .Select((meal, index) => new MealSuggestionDto
+    .Select(meal => new MealSuggestionDto
     {
-        Id = index + 1,
-
         MealType = Enum.TryParse<MealType>(
             meal.Key.Replace(" ", ""),
             true,
@@ -236,7 +276,6 @@ var meals = aiResponse.MealPlan
         Options = meal.Value.Options
     })
     .ToList();
-
         var plan = new NutritionPlan
         {
             NutritionProfileId = profile.Id,

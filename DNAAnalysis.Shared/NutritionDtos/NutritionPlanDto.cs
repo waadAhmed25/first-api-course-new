@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using DNAAnalysis.Shared.NutritionDtos.AI;
 
 namespace DNAAnalysis.Shared.NutritionDtos;
 
@@ -20,6 +21,6 @@ public class NutritionPlanDto
     public double RemainingCalories { get; set; }
 
     [JsonPropertyName("meal_plan")]
-    public IEnumerable<MealSuggestionDto> Meals { get; set; }
-        = new List<MealSuggestionDto>();
+    public Dictionary<string, AiMealDto> MealPlan { get; set; }
+        = new();
 }

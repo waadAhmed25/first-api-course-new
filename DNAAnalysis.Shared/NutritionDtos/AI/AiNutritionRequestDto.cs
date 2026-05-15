@@ -1,6 +1,4 @@
-// AiNutritionRequestDto.cs
-// تم حذف ActivityLevel و HealthCondition
-// وتم استبدالهم بـ Activity و Status
+using System.Text.Json.Serialization;
 
 namespace DNAAnalysis.Shared.NutritionDtos.AI;
 
@@ -18,5 +16,6 @@ public class AiNutritionRequestDto
 
     public string Status { get; set; } = null!;
 
+    [JsonPropertyName("include_night_snack")]
     public bool IncludeNightSnack { get; set; }
 }

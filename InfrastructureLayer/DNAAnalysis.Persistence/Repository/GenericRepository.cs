@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 
 namespace DNAAnalysis.Persistence.Repository
 { 
+
     public class GenericRepository<TEntity, TKey>
         : IGenericRepository<TEntity, TKey>
         where TEntity : BaseEntity<TKey>
@@ -42,5 +43,21 @@ namespace DNAAnalysis.Persistence.Repository
         public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> predicate)
             => await _dbContext.Set<TEntity>()
                                .FirstOrDefaultAsync(predicate);
+
+       public async Task<IEnumerable<TEntity>> GetAllIncludingAsync(
+    Expression<Func<TEntity, bool>> predicate,
+    params Expression<Func<TEntity, object>>[] includes)
+{
+    IQueryable<TEntity> query = _dbContext.Set<TEntity>();
+
+    query = query.Where(predicate);
+
+    foreach (var include in includes)
+    {
+        query = query.Include(include);
+    }
+
+    return await query.ToListAsync();
+}                        
     }
 }

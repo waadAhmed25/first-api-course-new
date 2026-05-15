@@ -11,6 +11,7 @@ namespace DNAAnalysis.Domain.Contracts
         Task<IEnumerable<TEntity>> GetAllAsync();
 
         // ✅ Overload جديد للفلترة في SQL
+
         Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate);
 
         Task<TEntity?> GetByIdAsync(TKey id);
@@ -20,5 +21,8 @@ namespace DNAAnalysis.Domain.Contracts
         void Update(TEntity entity);
 
         void Remove(TEntity entity);
+        Task<IEnumerable<TEntity>> GetAllIncludingAsync(
+    Expression<Func<TEntity, bool>> predicate,
+    params Expression<Func<TEntity, object>>[] includes);
     }
 }
