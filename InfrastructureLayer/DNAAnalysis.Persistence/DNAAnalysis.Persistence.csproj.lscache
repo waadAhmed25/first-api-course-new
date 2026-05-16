@@ -85,6 +85,8 @@ Data/
   20260512012951_AddNutritionModule.Designer.cs
   20260512041111_UpdateNutritionModuleV2.cs
   20260512041111_UpdateNutritionModuleV2.Designer.cs
+  20260515221411_ChangeMealSelectionToOption.cs
+  20260515221411_ChangeMealSelectionToOption.Designer.cs
   DNAAnalysisDbContextModelSnapshot.cs
 IdentityData/
  DataSeed/IdentityDataInitializer.cs

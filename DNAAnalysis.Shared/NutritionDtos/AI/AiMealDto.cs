@@ -11,6 +11,5 @@ public class AiMealDto
     public AiMacrosDto Macros { get; set; } = null!;
 
     [JsonPropertyName("options")]
-    public List<string> Options { get; set; }
-        = new();
+    public List<string> Options { get; set; } = new();
 }

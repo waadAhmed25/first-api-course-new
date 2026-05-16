@@ -93,6 +93,8 @@ NutritionDtos/AI/
  AiNutritionResponseDto.cs
 NutritionDtos/
  CreateNutritionProfileDto.cs
+ MealOptionDto.cs
+ MealResponseDto.cs
  MealSuggestionDto.cs
  NutritionPlanDto.cs
 obj/Debug/net8.0/

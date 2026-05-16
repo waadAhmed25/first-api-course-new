@@ -4,6 +4,7 @@ using System.Reflection;
 using DNAAnalysis.Domain.Entities.DrugModule;
 using DNAAnalysis.Domain.Entities.NutritionModule;
 using DNAAnalysis.Domain.Entities.AlarmModule;
+using DNAAnalysis.Domain.Entities;
 
 namespace DNAAnalysis.Persistence.Data.DBContexts
 {

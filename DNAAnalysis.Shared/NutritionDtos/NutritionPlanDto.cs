@@ -21,6 +21,5 @@ public class NutritionPlanDto
     public double RemainingCalories { get; set; }
 
     [JsonPropertyName("meal_plan")]
-    public Dictionary<string, AiMealDto> MealPlan { get; set; }
-        = new();
+public Dictionary<string, MealResponseDto> MealPlan { get; set; } = new();
 }

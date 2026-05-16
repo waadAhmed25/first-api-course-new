@@ -7,6 +7,8 @@ using System.Text.Json;
 using DNAAnalysis.Services.Abstraction;
 using DNAAnalysis.Shared.NutritionDtos.AI;
 using DNAAnalysis.Shared.Enums;
+using DNAAnalysis.Domain.Entities;
+
 
 
 namespace DNAAnalysis.Services;
@@ -111,14 +113,15 @@ public class NutritionService : INutritionService
             await selectionRepo.GetAllAsync(
                 x => x.UserId == userId);
 
-        var selectedMealIds =
-            selectedMeals
-                .Select(x => x.MealSuggestionId)
-                .ToList();
+        var selectedOptionIds =
+    selectedMeals
+        .Select(x => x.MealOptionId)
+        .ToList();
 
         var eatenCalories = meals
-            .Where(x => selectedMealIds.Contains(x.Id))
-            .Sum(x => x.Calories);
+    .Where(meal => meal.Options
+        .Any(option => selectedOptionIds.Contains(option.Id)))
+    .Sum(meal => meal.Calories);
 
         return new NutritionPlanDto
         {
@@ -134,7 +137,7 @@ public class NutritionService : INutritionService
             RemainingCalories =
                 plan.FinalCaloriesGoal - eatenCalories,
 
-            MealPlan = meals.ToDictionary(
+      MealPlan = meals.ToDictionary(
     x => x.MealType switch
     {
         MealType.Breakfast => "Breakfast",
@@ -143,7 +146,7 @@ public class NutritionService : INutritionService
         MealType.NightSnack => "Night Snack",
         _ => "Snack"
     },
-    x => new AiMealDto
+    x => new MealResponseDto
     {
         Calories = x.Calories,
 
@@ -153,12 +156,10 @@ public class NutritionService : INutritionService
             {
                 Grams = x.ProteinGrams
             },
-
             Carbs = new MacroValue
             {
                 Grams = x.CarbsGrams
             },
-
             Fat = new MacroValue
             {
                 Grams = x.FatGrams
@@ -166,7 +167,11 @@ public class NutritionService : INutritionService
         },
 
         Options = x.Options
-            .Select(o => o.Name)
+            .Select(o => new MealOptionDto
+            {
+                Id = o.Id,
+                Name = o.Name
+            })
             .ToList()
     })
         };
@@ -203,10 +208,12 @@ public class NutritionService : INutritionService
             x => x.NutritionPlanId == existingPlan.Id,
             x => x.Options);
 
-    foreach (var meal in oldMeals)
-    {
-        mealRepo.Remove(meal);
-    }
+   foreach (var meal in oldMeals)
+{
+    meal.Options.Clear();
+
+    mealRepo.Remove(meal);
+}
 
     planRepo.Remove(existingPlan);
 
@@ -326,95 +333,92 @@ foreach (var aiMeal in meals)
         return await GetUserPlanAsync(userId);
     }
 
-    public async Task SelectMealAsync(
-        string userId,
-        int mealId)
+    public async Task SelectMealAsync(string userId, int optionId)
+{
+    if (optionId <= 0)
+        throw new ArgumentException("Invalid option id");
+
+    var selectionRepo =
+        _unitOfWork.GetRepository<UserMealSelection, int>();
+
+    var optionRepo =
+        _unitOfWork.GetRepository<MealOption, int>();
+
+    var profileRepo =
+        _unitOfWork.GetRepository<NutritionProfile, int>();
+
+    var planRepo =
+        _unitOfWork.GetRepository<NutritionPlan, int>();
+
+    var profile =
+        await profileRepo.GetAsync(
+            x => x.UserId == userId);
+
+    if (profile == null)
+        throw new ArgumentException("Profile not found");
+
+    var plan =
+        await planRepo.GetAsync(
+            x => x.NutritionProfileId == profile.Id);
+
+    if (plan == null)
+        throw new ArgumentException("Plan not found");
+
+    var option =
+        await optionRepo.GetAsync(x =>
+            x.Id == optionId &&
+            x.MealSuggestion.NutritionPlanId == plan.Id);
+
+    if (option == null)
     {
-        if (mealId <= 0)
-            throw new ArgumentException("Invalid meal id");
-
-        var selectionRepo =
-            _unitOfWork.GetRepository<UserMealSelection, int>();
-
-        var mealRepo =
-            _unitOfWork.GetRepository<MealSuggestion, int>();
-
-        var profileRepo =
-            _unitOfWork.GetRepository<NutritionProfile, int>();
-
-        var planRepo =
-            _unitOfWork.GetRepository<NutritionPlan, int>();
-
-        var profile =
-            await profileRepo.GetAsync(
-                x => x.UserId == userId);
-
-        if (profile == null)
-            throw new ArgumentException("Profile not found");
-
-        var plan =
-            await planRepo.GetAsync(
-                x => x.NutritionProfileId == profile.Id);
-
-        if (plan == null)
-            throw new ArgumentException("Plan not found");
-
-        var meal =
-            await mealRepo.GetAsync(x =>
-                x.Id == mealId &&
-                x.NutritionPlanId == plan.Id);
-
-        if (meal == null)
-        {
-            throw new ArgumentException(
-                "Meal not found or not belongs to this user");
-        }
-
-        var existing =
-            await selectionRepo.GetAsync(x =>
-                x.UserId == userId &&
-                x.MealSuggestionId == mealId);
-
-        if (existing != null)
-            throw new ArgumentException(
-                "Meal already selected");
-
-        var selection =
-            new UserMealSelection
-            {
-                UserId = userId,
-
-                MealSuggestionId = mealId
-            };
-
-        await selectionRepo.AddAsync(selection);
-
-        await _unitOfWork.SaveChangeAsync();
+        throw new ArgumentException(
+            "Meal option not found or not belongs to this user");
     }
+
+    var existing =
+        await selectionRepo.GetAsync(x =>
+            x.UserId == userId &&
+            x.MealOptionId == optionId);
+
+    if (existing != null)
+        throw new ArgumentException(
+            "Meal already selected");
+
+    var selection =
+        new UserMealSelection
+        {
+            UserId = userId,
+            MealOptionId = optionId
+        };
+
+    await selectionRepo.AddAsync(selection);
+
+    await _unitOfWork.SaveChangeAsync();
+}
 
     public async Task UnselectMealAsync(
-        string userId,
-        int mealId)
+    string userId,
+    int optionId)
+{
+    if (optionId <= 0)
+        throw new ArgumentException("Invalid option id");
+
+    var repo =
+        _unitOfWork.GetRepository<UserMealSelection, int>();
+
+    var existing =
+        await repo.GetAsync(x =>
+            x.UserId == userId &&
+            x.MealOptionId == optionId);
+
+    if (existing == null)
     {
-        if (mealId <= 0)
-            throw new ArgumentException("Invalid meal id");
-
-        var repo =
-            _unitOfWork.GetRepository<UserMealSelection, int>();
-
-        var existing =
-            await repo.GetAsync(x =>
-                x.UserId == userId &&
-                x.MealSuggestionId == mealId);
-
-        if (existing == null)
-        {
-            throw new ArgumentException(
-                "Meal selection not found");
-        }
-
-        repo.Remove(existing);
-
-        await _unitOfWork.SaveChangeAsync();
+        throw new ArgumentException(
+            "Meal selection not found");
     }
+
+    repo.Remove(existing);
+
+    await _unitOfWork.SaveChangeAsync();
+}
 }

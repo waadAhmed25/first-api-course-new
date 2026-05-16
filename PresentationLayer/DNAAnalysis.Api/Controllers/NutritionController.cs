@@ -25,8 +25,7 @@ public class NutritionController : ControllerBase
     }
 
     [HttpPost("profile")]
-    public async Task<IActionResult> CreateProfile(CreateNutritionProfileDto dto)
-    {
+public async Task<IActionResult> CreateProfile([FromBody] CreateNutritionProfileDto dto)    {
         var userId = GetUserId();
 
         await _nutritionService.CreateProfileAsync(userId, dto);
@@ -80,30 +79,29 @@ public class NutritionController : ControllerBase
     }
 
     // ✅ FIXED
-    [HttpPost("select-meal/{mealId}")]
-    public async Task<IActionResult> SelectMeal([FromRoute] int mealId)
-    {
-        var userId = GetUserId();
+[HttpPost("select-meal/{optionId}")]
+public async Task<IActionResult> SelectMeal([FromRoute] int optionId)
+{
+    var userId = GetUserId();
 
-        await _nutritionService.SelectMealAsync(userId, mealId);
+    await _nutritionService.SelectMealAsync(userId, optionId);
 
-        return Ok(new ApiResponse<string>(
-            "Meal selected",
-            "Success"
-        ));
-    }
-
+    return Ok(new ApiResponse<string>(
+        "Meal selected",
+        "Success"
+    ));
+}
     // ✅ FIXED
-    [HttpDelete("select-meal/{mealId}")]
-    public async Task<IActionResult> UnselectMeal([FromRoute] int mealId)
-    {
-        var userId = GetUserId();
+   [HttpDelete("select-meal/{optionId}")]
+public async Task<IActionResult> UnselectMeal([FromRoute] int optionId)
+{
+    var userId = GetUserId();
 
-        await _nutritionService.UnselectMealAsync(userId, mealId);
+    await _nutritionService.UnselectMealAsync(userId, optionId);
 
-        return Ok(new ApiResponse<string>(
-            "Meal unselected",
-            "Success"
-        ));
-    }
+    return Ok(new ApiResponse<string>(
+        "Meal unselected",
+        "Success"
+    ));
+}
 }

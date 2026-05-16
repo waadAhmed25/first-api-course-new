@@ -10,12 +10,11 @@ public class CreateNutritionProfileDto
 
     public int Age { get; set; }
 
-    public string Gender { get; set; } = null!;
+    public string Gender { get; set; } = string.Empty;
 
-    public string Activity { get; set; } = null!;
+    public string Activity { get; set; } = string.Empty;
 
-    public string Status { get; set; } = null!;
+    public string Status { get; set; } = string.Empty;
 
     public bool IncludeNightSnack { get; set; }
-
 }
